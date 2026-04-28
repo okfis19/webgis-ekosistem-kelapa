@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://fast-choice-partial-shown.trycloudflare.com/geoserver/:match*"
+      "destination": "https://random-artwork-lion-specified.trycloudflare.com/geoserver/:match*"
     }, {
       "source": "/(.*)",
       "destination": "/"

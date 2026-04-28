@@ -1,0 +1,11 @@
+{
+  "rewrites": [
+    {
+      "source": "/geoserver/:match*",
+      "destination": "https://karen-written-customise-beautifully.trycloudflare.com/geoserver/:match*"
+    }, {
+      "source": "/(.*)",
+      "destination": "/"
+    }
+  ]
+}

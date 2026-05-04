@@ -14,7 +14,7 @@ const Navbar = () => {
                     </div>
                     <div>
                         <h1 className='text-cl font-bold text-[#1072B1] leading-tight'>
-                            🌴 WEBGIS Ekosistem Kelapa
+                            🌴 WEBGIS Ekosistem Kelapa 🌴
                         </h1>
                     </div>
                     {/* Bagian Kanan link navbar */}

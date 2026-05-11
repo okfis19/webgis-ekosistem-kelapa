@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://scheme-may-tracker-examples.trycloudflare.com/geoserver/:match*"
+      "destination": "https://illustrations-small-miscellaneous-tag.trycloudflare.com/geoserver/:match*"
     }, {
       "source": "/(.*)",
       "destination": "/"

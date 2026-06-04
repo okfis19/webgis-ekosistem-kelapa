@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://gnome-fig-theories-susan.trycloudflare.com/geoserver/:match*"
+      "destination": "https://voters-quebec-votes-childhood.trycloudflare.com"
     }, {
       "source": "/(.*)",
       "destination": "/"

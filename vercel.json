@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://queens-ceo-age-ministers.trycloudflare.com"
+      "destination": "https://exclusively-defining-character-cruise.trycloudflare.com"
     }, {
       "source": "/(.*)",
       "destination": "/"

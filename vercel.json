@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://voters-quebec-votes-childhood.trycloudflare.com"
+      "destination": "https://cork-expert-rachel-retired.trycloudflare.com"
     }, {
       "source": "/(.*)",
       "destination": "/"

@@ -37,13 +37,15 @@ const LegendPanel = ({ activeLayers }) => {
                         return (
                             <div key={layer.id} >
                                 <h4 className="text-sm font-semibold text-[#1268A8]">{layer.name}</h4>
-                                <img 
-                                    src={legendUrl} 
-                                    alt={`Legenda ${layer.name}`} 
-                                    className="max-w-full object-contain"
-                                    // Antisipasi jika GeoServer gagal mengirim gambar
-                                    onError={(e) => e.target.style.display = 'none'}
-                                />
+                                <div className="overflow-x-auto w-full pb-2">
+                                    <img 
+                                        src={legendUrl} 
+                                        alt={`Legenda ${layer.name}`} 
+                                        className="max-w-none object-contain"
+                                        // Antisipasi jika GeoServer gagal mengirim gambar
+                                        onError={(e) => e.target.style.display = 'none'}
+                                    />
+                                </div>
                             </div>
                         )
                     })}

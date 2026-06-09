@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { MapContainer, TileLayer, WMSTileLayer } from "react-leaflet";
+import { MapContainer, TileLayer, WMSTileLayer, ZoomControl } from "react-leaflet";
 import 'leaflet/dist/leaflet.css';
 import Navbar from "../components/Navbar";
 import LayerPanel from "../components/LayerPanel";
@@ -88,6 +88,8 @@ const MapPage = () => {
                             />
                         )
                     ))};
+
+                    <ZoomControl position="bottomleft"/>
                 </MapContainer>
 
             </div>

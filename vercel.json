@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://hawk-trend-latest-accomplish.trycloudflare.com/geoserver/:match"
+      "destination": "https://applied-printable-technology-trips.trycloudflare.com/geoserver/:match"
     }, {
       "source": "/(.*)",
       "destination": "/"

@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://warriors-functioning-halo-kenneth.trycloudflare.com/geoserver/:match"
+      "destination": "https://verified-robertson-clarity-flexibility.trycloudflare.com/geoserver/:match"
     }, {
       "source": "/(.*)",
       "destination": "/"

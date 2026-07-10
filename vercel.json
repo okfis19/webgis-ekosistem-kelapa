@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://brain-gzip-pam-groundwater.trycloudflare.com/geoserver/:match"
+      "destination": "https://eva-non-angela-issued.trycloudflare.com/geoserver/:match"
     }, {
       "source": "/(.*)",
       "destination": "/"

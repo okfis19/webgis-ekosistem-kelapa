@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://photographic-forward-arg-lowest.trycloudflare.com/:match"
+      "destination": "https://photographic-forward-arg-lowest.trycloudflare.com/geoserver/:match"
     }, {
       "source": "/(.*)",
       "destination": "/"

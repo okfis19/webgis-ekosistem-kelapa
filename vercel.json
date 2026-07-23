@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://nations-calling-applicant-gmt.trycloudflare.com/geoserver/:match"
+      "destination": "https://item-gained-sector-jean.trycloudflare.com/geoserver/:match"
     }, {
       "source": "/(.*)",
       "destination": "/"

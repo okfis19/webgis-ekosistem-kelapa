@@ -32,6 +32,7 @@ const DataDuaPage = () => {
   // 2. DAFTAR KOLOM UNTUK TAB PARIT
   const columnsParit = useMemo(() => [
     { header: 'No', id: 'index', cell: (info) => info.row.index + 1 },
+    { header: 'Wilayah', accessorKey: 'Wilayah' },
     { header: 'Nama Parit/Tanggul', accessorKey: 'Nama' },
     { header: 'Desa', accessorKey: 'Desa' },
     { header: 'Kecamatan', accessorKey: 'Kecamatan' },

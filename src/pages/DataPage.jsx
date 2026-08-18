@@ -27,6 +27,10 @@ const DataPage = () => {
         { header: 'Panjang (km)', accessorKey: 'Panjang Parit/Tanggul (km)' },
         { header: 'Lebar (m)', accessorKey: 'Lebar Parit/Tanggul (m)' },
         { header: 'Permasalahan', accessorKey: 'Permasalahan' },
+        { header: 'Realisasi', accessorKey: 'Realisasi' },
+        { header: 'Tahun Perbaikan', accessorKey: 'Tahun Perbaikan' },
+        { header: 'Pendanaan', accessorKey: 'Pendanaan' },
+        
     ], []);
 
     const currentColumns = activeTab === 'kebun' ? columnsKebun : columnsParit;

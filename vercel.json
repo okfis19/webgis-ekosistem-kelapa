@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://mainland-conclude-pool-reef.trycloudflare.com/geoserver/:match"
+      "destination": "https://motherboard-low-symbols-transportation.trycloudflare.com/geoserver/:match"
     }, {
       "source": "/(.*)",
       "destination": "/"

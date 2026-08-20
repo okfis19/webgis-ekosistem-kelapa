@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://needs-connectors-attempted-television.trycloudflare.com/geoserver/:match"
+      "destination": "https://wonder-realize-oasis-soc.trycloudflare.com/geoserver/:match"
     }, {
       "source": "/(.*)",
       "destination": "/"

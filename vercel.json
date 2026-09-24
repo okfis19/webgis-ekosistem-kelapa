@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://cases-owners-stanford-employment.trycloudflare.com/geoserver/:match"
+      "destination": "https://teeth-move-framing-ladder.trycloudflare.com/geoserver/:match"
     }, {
       "source": "/(.*)",
       "destination": "/"

@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://happened-incentive-apartments-pirates.trycloudflare.com/geoserver/:match"
+      "destination": "https://trackback-hamilton-subscription-tide.trycloudflare.com/geoserver/:match"
     }, {
       "source": "/(.*)",
       "destination": "/"

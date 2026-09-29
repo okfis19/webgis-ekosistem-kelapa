@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { MapContainer, TileLayer, WMSTileLayer, ZoomControl } from "react-leaflet";
+import { MapContainer, TileLayer, WMSTileLayer, ZoomControl, Marker, Popup, useMapEvents } from "react-leaflet";
+import L from "leaflet";
 import 'leaflet/dist/leaflet.css';
 import Navbar from "../components/Navbar";
 import LayerPanel from "../components/LayerPanel";
 import LegendPanel from '../components/LegendPanel';
 
-{/* Konfigurasi Layer */}
 export const LAYER_CONFIG = [
     { id: 'layerAdm', name: 'Batas Administrasi Kecamatan', wsName: 'risetids:Batas_Administrasi_Kecamatan-LN' },
     { id: 'layerAdmDesa', name: 'Batas Administrasi Desa', wsName: 'risetids:Batas Administrasi Desa-LN' },
@@ -19,17 +19,13 @@ export const LAYER_CONFIG = [
     { id: 'layerPolaRuang', name: 'Rencana Pola Ruang', wsName: 'risetids:Rencana Pola Ruang'}
 ];
 
-{/* URL GEOSERVER */}
+
 // export const GEOSERVER_URL = "http://localhost:8080/geoserver/risetids/wms";
 // export const GEOSERVER_URL = "https://bondless-phrasing-wispy.ngrok-free.dev/geoserver/risetids/wms";
 export const GEOSERVER_URL = "/geoserver/risetids/wms";
 export const GEOSERVER_URL = "/geoserver/risetids/wfs";
 
-{/* ZOOM MINIMUM UNTUK MENAMPILKAN NOMOR */}
-
 const MIN_ZOOM_NOMOR = 13;
-
-{/* MEMBUAT ICON NOMOR */}
 
 const createNomorIcon = (nomor) => {
 
@@ -52,8 +48,6 @@ const createNomorIcon = (nomor) => {
 };
 
 
-{/* MENCARI TITIK TENGAH GARIS */}
-
 const getTitikTengah = (geometry) => {
 
     if (!geometry) {
@@ -64,9 +58,6 @@ const getTitikTengah = (geometry) => {
     let garis = [];
 
 
-    // ----------------------------------------------
-    // LINESTRING
-    // ----------------------------------------------
 
     if (geometry.type === "LineString") {
 
@@ -75,7 +66,6 @@ const getTitikTengah = (geometry) => {
     }
 
 
-{/* MULTILINESTRING */}
 
     else if (geometry.type === "MultiLineString") {
 
@@ -108,8 +98,6 @@ const getTitikTengah = (geometry) => {
     }
 
 
-{/* AMBIL TITIK TENGAH */}
-
     const indexTengah =
         Math.floor(garis.length / 2);
 
@@ -129,7 +117,7 @@ const getTitikTengah = (geometry) => {
 };
 
 
-{/* KOMPONEN UNTUK MEMANTAU ZOOM */}
+
 
 const ZoomTracker = ({ setZoom }) => {
 
@@ -150,7 +138,6 @@ const ZoomTracker = ({ setZoom }) => {
 };
 
 
-{/* KOMPONEN NOMOR PARIT / TANGGUL */}
 
 const NomorParitTanggul = ({
     features,
@@ -171,17 +158,8 @@ const NomorParitTanggul = ({
 
             {features.map((feature, index) => {
 
-                // ----------------------------------
-                // AMBIL NAMA DARI POSTGRESQL
-                // ----------------------------------
-
                 const nama =
                     feature.properties?.Nama;
-
-
-                // ----------------------------------
-                // POSISI NOMOR
-                // ----------------------------------
 
                 const posisi =
                     getTitikTengah(
@@ -194,12 +172,6 @@ const NomorParitTanggul = ({
                 }
 
 
-                // ----------------------------------
-                // NOMOR
-                //
-                // Saat ini berdasarkan urutan
-                // data WFS
-                // ----------------------------------
 
                 const nomor =
                     index + 1;
@@ -247,7 +219,7 @@ const NomorParitTanggul = ({
 };
 
 
-{/* KOMPONEN DATA PARIT DAN TANGGUL */}
+
 
 const ParitTanggulData = ({
     enabled,
@@ -278,7 +250,7 @@ const ParitTanggulData = ({
             new AbortController();
 
 
-        {/* PARAMETER WFS */}
+       
 
         const params =
             new URLSearchParams({
@@ -290,7 +262,7 @@ const ParitTanggulData = ({
                 request: "GetFeature",
 
                 typeName:
-                    "webgis:Parit_Tanggul",
+                    "risetids:Parit_Tanggul",
 
                 outputFormat:
                     "application/json"
@@ -298,13 +270,13 @@ const ParitTanggulData = ({
             });
 
 
-        {/* URL WFS */}
+       
 
         const url =
             `${GEOSERVER_WFS_URL}?${params.toString()}`;
 
 
-        {/* FETCH */}
+        
 
         fetch(url, {
 
@@ -358,7 +330,7 @@ const ParitTanggulData = ({
             });
 
 
-        {/* CLEANUP */}
+        
 
         return () => {
 
@@ -369,7 +341,7 @@ const ParitTanggulData = ({
     }, [enabled]);
 
 
-    {/* TAMPILKAN NOMOR */}
+    
 
     return (
 
@@ -390,13 +362,12 @@ const ParitTanggulData = ({
 
 
 
-{/* MAP PAGE */}
+
 
 const MapPage = () => {
 
 
-    {/* STATE LAYER AKTIF */}
-
+    
     const [activeLayers, setActiveLayers] = useState({
         layerKab: false,
         layerAdm: false,
@@ -411,7 +382,7 @@ const MapPage = () => {
     });
 
 
-    {/* STATE ZOOM */}
+    
 
     const [
         zoom,
@@ -419,7 +390,7 @@ const MapPage = () => {
     ] = useState(8);
 
 
-    {/* TOGGLE LAYER */}
+    
 
     const handleToggleLayer = (layerId) => {
         setActiveLayers((prev) => ({
@@ -430,7 +401,7 @@ const MapPage = () => {
 
 
 
-    {/* RETURN */}
+    
 
     return (
         <div className="relative h-screen w-screen overflow-hidden">
@@ -449,7 +420,6 @@ const MapPage = () => {
             </div>
          
 
-            {/* Kontainer peta */}
 
             <div className="absolute inset-0 z-10 h-full w-full">
                 <MapContainer
@@ -462,6 +432,8 @@ const MapPage = () => {
                         url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                         attribution="Tiles &copy; Esri"
                     />
+
+
                     {LAYER_CONFIG.map((layer) => (
                         activeLayers[layer.id] && (
                             <WMSTileLayer 
@@ -475,7 +447,7 @@ const MapPage = () => {
                     ))}
 
 
-                    {/* MONITOR ZOOM */}
+              
 
                     <ZoomTracker
 
@@ -486,7 +458,7 @@ const MapPage = () => {
                     />
 
 
-                    {/* NOMOR PARIT / TANGGUL */}
+                    
 
                     <ParitTanggulData
 
@@ -501,7 +473,6 @@ const MapPage = () => {
                     />
 
 
-                    {/* ZOOM CONTROL */}
 
                     <ZoomControl position="bottomleft"/>
                 </MapContainer>

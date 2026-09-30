@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://dual-resolved-understand-particular.trycloudflare.com/geoserver/:match"
+      "destination": "https://opportunity-lovers-mile-sally.trycloudflare.com/geoserver/:match"
     }, {
       "source": "/(.*)",
       "destination": "/"

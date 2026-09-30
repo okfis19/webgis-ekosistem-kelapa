@@ -65,7 +65,10 @@ const columnsKebun = useMemo(() => {
     {
       header: "No",
       id: "index",
-      cell: (info) => info.row.index + 1,
+      cell: (info) => 
+        info.row.index + 
+        1 +
+        pagination.pageIndex * pagination.pageSize,
     },
 
     {

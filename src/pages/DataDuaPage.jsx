@@ -60,142 +60,116 @@ const DataDuaPage = () => {
      KOLOM DATA KEBUN
      ======================================================= */
 
-  const columnsKebun = useMemo(() => {
+const columnsKebun = useMemo(() => {
+  return [
+    {
+      header: "No",
+      id: "index",
+      cell: (info) => info.row.index + 1,
+    },
 
-    return [
-      {
-        header: "No",
-        id: "index",
+    {
+      header: "Kecamatan",
+      accessorKey: "Kecamatan",
+    },
 
-        cell: (info) => {
-          return (
-            info.row.index +
-            1 +
-            pagination.pageIndex *
-              pagination.pageSize
-          );
-        },
-      },
+    {
+      header: "Desa",
+      accessorKey: "Desa",
+    },
 
-      {
-        header: "Kecamatan",
-        accessorKey: "Kecamatan",
-      },
+    {
+      header: "Nama Pemilik",
+      accessorKey: "Nama Pemilik",
+    },
 
-      {
-        header: "Desa",
-        accessorKey: "Desa",
-      },
+    {
+      header: "Luas Lahan (Ha)",
+      accessorKey: "Luas Lahan (Ha)",
+    },
 
-      {
-        header: "Nama Pemilik",
-        accessorKey: "Nama Pemilik",
-      },
+    {
+      header: "Jumlah Pohon",
+      accessorKey: "Jumlah Pohon",
+    },
 
-      {
-        header: "Luas Lahan (Ha)",
-        accessorKey: "Luas Lahan (Ha)",
-      },
-
-      {
-        header: "Jumlah Pohon",
-        accessorKey: "Jumlah Pohon",
-      },
-
-      {
-        header: "Pola Budidaya",
-        accessorKey: "Pola Budidaya",
-      },
-    ];
-
-  }, [
-    pagination.pageIndex,
-    pagination.pageSize,
-  ]);
+    {
+      header: "Pola Budidaya",
+      accessorKey: "Pola Budidaya",
+    },
+  ];
+}, []);
 
   /* =======================================================
      KOLOM DATA PARIT / TANGGUL
      ======================================================= */
 
-  const columnsParit = useMemo(() => {
+const columnsParit = useMemo(() => {
+  return [
+    {
+      header: "No",
+      id: "index",
+      cell: (info) => info.row.index + 1,
+    },
 
-    return [
-      {
-        header: "No",
-        id: "index",
+    {
+      header: "Wilayah",
+      accessorKey: "Wilayah",
+    },
 
-        cell: (info) => {
-          return (
-            info.row.index +
-            1 +
-            pagination.pageIndex *
-              pagination.pageSize
-          );
-        },
-      },
+    {
+      header: "Status Parit",
+      accessorKey: "Status Parit",
+    },
 
-      {
-        header: "Wilayah",
-        accessorKey: "Wilayah",
-      },
+    {
+      header: "Nama Parit/Tanggul",
+      accessorKey: "Nama",
+    },
 
-      {
-        header: "Status Parit",
-        accessorKey: "Status Parit",
-      },
+    {
+      header: "Desa",
+      accessorKey: "Desa",
+    },
 
-      {
-        header: "Nama Parit/Tanggul",
-        accessorKey: "Nama",
-      },
+    {
+      header: "Kecamatan",
+      accessorKey: "Kecamatan",
+    },
 
-      {
-        header: "Desa",
-        accessorKey: "Desa",
-      },
+    {
+      header: "Panjang (km)",
+      accessorKey:
+        "Panjang Parit/Tanggul (km)",
+    },
 
-      {
-        header: "Kecamatan",
-        accessorKey: "Kecamatan",
-      },
+    {
+      header: "Lebar (m)",
+      accessorKey:
+        "Lebar Parit/Tanggul (m)",
+    },
 
-      {
-        header: "Panjang (km)",
-        accessorKey:
-          "Panjang Parit/Tanggul (km)",
-      },
+    {
+      header: "Permasalahan",
+      accessorKey: "Permasalahan",
+    },
 
-      {
-        header: "Lebar (m)",
-        accessorKey:
-          "Lebar Parit/Tanggul (m)",
-      },
+    {
+      header: "Realisasi",
+      accessorKey: "Realisasi",
+    },
 
-      {
-        header: "Permasalahan",
-        accessorKey: "Permasalahan",
-      },
+    {
+      header: "Tahun Perbaikan",
+      accessorKey: "Tahun Perbaikan",
+    },
 
-      {
-        header: "Realisasi",
-        accessorKey: "Realisasi",
-      },
-
-      {
-        header: "Tahun Perbaikan",
-        accessorKey: "Tahun Perbaikan",
-      },
-
-      {
-        header: "Pendanaan",
-        accessorKey: "Pendanaan",
-      },
-    ];
-
-  }, [
-    pagination.pageIndex,
-    pagination.pageSize,
-  ]);
+    {
+      header: "Pendanaan",
+      accessorKey: "Pendanaan",
+    },
+  ];
+}, []);
 
   /* =======================================================
      KOLOM AKTIF

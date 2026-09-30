@@ -8,7 +8,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-const GEOSERVER_WFS_URL = "/geoserver/risetids/ows";
+const GEOSERVER_WFS_URL = "/geoserver/webgis/ows";
 
 const DataDuaPage = () => {
   // ============================================================
@@ -67,7 +67,7 @@ const DataDuaPage = () => {
         params.set("service", "WFS");
         params.set("version", "1.0.0");
         params.set("request", "GetFeature");
-        params.set("typeName", "risetids:Infrastruktur_Data_Spasial");
+        params.set("typeName", "webgis:Infrastruktur_Data_Spasial");
         params.set("outputFormat", "application/json");
         params.set("srsName", "EPSG:4326");
         params.set("maxFeatures", "10000");
@@ -157,7 +157,7 @@ const DataDuaPage = () => {
         params.set("service", "WFS");
         params.set("version", "1.0.0");
         params.set("request", "GetFeature");
-        params.set("typeName", "risetids:Parit_Tanggul");
+        params.set("typeName", "webgis:Parit_Tanggul");
         params.set("outputFormat", "application/json");
         params.set("srsName", "EPSG:4326");
         params.set("maxFeatures", "10000");

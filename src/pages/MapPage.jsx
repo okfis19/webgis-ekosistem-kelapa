@@ -22,7 +22,7 @@ import LegendPanel from "../components/LegendPanel";
    ========================================================= */
 
 export const GEOSERVER_WMS_URL = "/geoserver/wms";
-export const GEOSERVER_WFS_URL = "/geoserver/webgis/ows";
+export const GEOSERVER_WFS_URL = "/geoserver/risetids/ows";
 
 /* =========================================================
    KONFIGURASI LAYER
@@ -32,12 +32,12 @@ export const LAYER_CONFIG = [
   {
     id: "layerAdm",
     name: "Batas Administrasi Kecamatan",
-    wsName: "webgis:Batas_Administrasi_Kecamatan-LN",
+    wsName: "risetids:Batas_Administrasi_Kecamatan-LN",
   },
   {
     id: "layerAdmDesa",
     name: "Batas Administrasi Desa",
-    wsName: "webgis:Batas Administrasi Desa-LN",
+    wsName: "risetids:Batas Administrasi Desa-LN",
   },
   {
     id: "layerKab",
@@ -47,37 +47,37 @@ export const LAYER_CONFIG = [
   {
     id: "layerSungai",
     name: "Sungai Indragiri Hilir",
-    wsName: "webgis:Sungai_Indragiri_Hilir",
+    wsName: "risetids:Sungai_Indragiri_Hilir",
   },
   {
     id: "layerTanah",
     name: "Jenis Tanah",
-    wsName: "webgis:Jenis_Tanah_INHIL",
+    wsName: "risetids:Jenis_Tanah_INHIL",
   },
   {
     id: "layerKelapa",
     name: "Sebaran Perkebunan Kelapa",
-    wsName: "webgis:Sebaran_Kebun_Kelapa",
+    wsName: "risetids:Sebaran_Kebun_Kelapa",
   },
   {
     id: "layerDem",
     name: "Demnas",
-    wsName: "webgis:Demnas_Clip-2",
+    wsName: "risetids:Demnas_Clip-2",
   },
   {
     id: "layerLahan",
     name: "Tutupan Lahan",
-    wsName: "webgis:Tutupan_Lahan",
+    wsName: "risetids:Tutupan_Lahan",
   },
   {
     id: "layerParit",
     name: "Parit dan Tanggul",
-    wsName: "webgis:Parit_Tanggul",
+    wsName: "risetids:Parit_Tanggul",
   },
   {
     id: "layerPolaRuang",
     name: "Rencana Pola Ruang",
-    wsName: "webgis:Rencana Pola Ruang",
+    wsName: "risetids:Rencana Pola Ruang",
   },
 ];
 
@@ -255,7 +255,7 @@ const ParitTanggulData = ({
     params.set("service", "WFS");
     params.set("version", "1.0.0");
     params.set("request", "GetFeature");
-    params.set("typeName", "webgis:Parit_Tanggul");
+    params.set("typeName", "risetids:Parit_Tanggul");
     params.set("outputFormat", "application/json");
     params.set("srsName", "EPSG:4326");
     params.set("maxFeatures", "10000");

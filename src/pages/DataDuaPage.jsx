@@ -20,7 +20,7 @@ import {
    ========================================================= */
 
 const GEOSERVER_WFS_URL =
-  "/geoserver/webgis/ows";
+  "/geoserver/risetids/ows";
 
 /* =========================================================
    DATA DUA PAGE
@@ -273,12 +273,12 @@ const DataDuaPage = () => {
         if (activeTab === "kebun") {
 
           layerName =
-            "webgis:Infrastruktur_Data_Spasial";
+            "risetids:Infrastruktur_Data_Spasial";
 
         } else {
 
           layerName =
-            "webgis:Parit_Tanggul";
+            "risetids:Parit_Tanggul";
         }
 
         /* -----------------------------------------------

@@ -107,135 +107,94 @@ const columnsKebun = useMemo(() => {
      KOLOM DATA PARIT / TANGGUL
      ======================================================= */
 
-  const columnsParit = useMemo(() => {
-
-    return [
-      {
-        header: "No",
-        id: "index",
-
-        cell: (info) => {
-          return (
-            info.row.index +
-            1 +
-            pagination.pageIndex *
-              pagination.pageSize
-          );
-        },
-      },
-
-      {
-        header: "Wilayah",
-        accessorKey: "Wilayah",
-      },
-
-      {
-        header: "Status Parit",
-        accessorKey: "Status Parit",
-      },
-
-      {
-        header: "Nama Parit/Tanggul",
-        accessorKey: "Nama",
-      },
-
-      {
-        header: "Desa",
-        accessorKey: "Desa",
-      },
-
-      {
-        header: "Kecamatan",
-        accessorKey: "Kecamatan",
-      },
-
-      {
-        header: "Panjang (km)",
-        accessorKey:
-          "Panjang Parit/Tanggul (km)",
-      },
-
-      {
-        header: "Lebar (m)",
-        accessorKey:
-          "Lebar Parit/Tanggul (m)",
-      },
-
-      {
-        header: "Permasalahan",
-        accessorKey: "Permasalahan",
-      },
-
-      {
-        header: "Realisasi",
-        accessorKey: "Realisasi",
-      },
-
-      {
-        header: "Tahun Perbaikan",
-        accessorKey: "Tahun Perbaikan",
-      },
-
-      {
-        header: "Pendanaan",
-        accessorKey: "Pendanaan",
-      },
-    ];
-
-  }, [
-    pagination.pageIndex,
-    pagination.pageSize,
-  ]);
-
-  /* =======================================================
-     KOLOM AKTIF
-     ======================================================= */
-
-  const currentColumns =
-    activeTab === "kebun"
-      ? columnsKebun
-      : columnsParit;
-
-  /* =======================================================
-     REACT TABLE
-     ======================================================= */
-
-  const table = useReactTable({
-
-    data: data,
-
-    columns: currentColumns,
-
-    getCoreRowModel:
-      getCoreRowModel(),
-
-    getSortedRowModel:
-      getSortedRowModel(),
-
-    getFilteredRowModel:
-      getFilteredRowModel(),
-
-    getPaginationRowModel:
-      getPaginationRowModel(),
-
-    state: {
-      sorting: sorting,
-      globalFilter: globalFilter,
-      pagination: pagination,
+const columnsParit = useMemo(() => {
+  return [
+    {
+      header: "No",
+      id: "index",
+      cell: (info) => info.row.index + 1,
     },
+    {
+      header: "Wilayah",
+      accessorKey: "Wilayah",
+    },
+    {
+      header: "Status Parit",
+      accessorKey: "Status Parit",
+    },
+    {
+      header: "Nama Parit/Tanggul",
+      accessorKey: "Nama",
+    },
+    {
+      header: "Desa",
+      accessorKey: "Desa",
+    },
+    {
+      header: "Kecamatan",
+      accessorKey: "Kecamatan",
+    },
+    {
+      header: "Panjang (km)",
+      accessorKey: "Panjang Parit/Tanggul (km)",
+    },
+    {
+      header: "Lebar (m)",
+      accessorKey: "Lebar Parit/Tanggul (m)",
+    },
+    {
+      header: "Permasalahan",
+      accessorKey: "Permasalahan",
+    },
+    {
+      header: "Realisasi",
+      accessorKey: "Realisasi",
+    },
+    {
+      header: "Tahun Perbaikan",
+      accessorKey: "Tahun Perbaikan",
+    },
+    {
+      header: "Pendanaan",
+      accessorKey: "Pendanaan",
+    },
+  ];
+}, []);
 
-    onSortingChange:
-      setSorting,
+/* =======================================================
+   KOLOM AKTIF
+   ======================================================= */
 
-    onGlobalFilterChange:
-      setGlobalFilter,
+const currentColumns =
+  activeTab === "kebun"
+    ? columnsKebun
+    : columnsParit;
 
-    onPaginationChange:
-      setPagination,
+/* =======================================================
+   REACT TABLE
+   ======================================================= */
 
-    autoResetPageIndex: false,
+const table = useReactTable({
+  data: data,
+  columns: currentColumns,
 
-  });
+  getCoreRowModel: getCoreRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
+
+  state: {
+    sorting: sorting,
+    globalFilter: globalFilter,
+    pagination: pagination,
+  },
+
+  onSortingChange: setSorting,
+  onGlobalFilterChange: setGlobalFilter,
+  onPaginationChange: setPagination,
+
+  autoResetPageIndex: false,
+});
 
   /* =======================================================
      AMBIL DATA DARI GEOSERVER

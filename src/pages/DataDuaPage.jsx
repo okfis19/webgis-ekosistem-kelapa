@@ -1,206 +1,414 @@
-import React, {
-  useState,
-  useEffect,
-  useMemo,
-} from "react";
-
-import Navbar from "../components/Navbar";
-
+import React, { useEffect, useMemo, useState } from "react";
 import {
-  useReactTable,
-  getCoreRowModel,
   flexRender,
-  getSortedRowModel,
+  getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
 } from "@tanstack/react-table";
 
-/* =========================================================
-   GEOSERVER WFS
-   ========================================================= */
-
-const GEOSERVER_WFS_URL =
-  "/geoserver/risetids/ows";
-
-/* =========================================================
-   DATA DUA PAGE
-   ========================================================= */
+const GEOSERVER_WFS_URL = "/geoserver/risetids/ows";
 
 const DataDuaPage = () => {
+  // ============================================================
+  // TAB
+  // ============================================================
 
-  /* =======================================================
-     STATE
-     ======================================================= */
+  const [activeTab, setActiveTab] = useState("kebun");
 
-  const [activeTab, setActiveTab] =
-    useState("kebun");
+  // ============================================================
+  // DATA
+  // ============================================================
 
-  const [data, setData] =
-    useState([]);
+  const [dataKebun, setDataKebun] = useState([]);
+  const [dataParit, setDataParit] = useState([]);
 
-  const [isLoading, setIsLoading] =
-    useState(false);
+  const [loadingKebun, setLoadingKebun] = useState(false);
+  const [loadingParit, setLoadingParit] = useState(false);
 
-  const [errorMessage, setErrorMessage] =
-    useState("");
+  const [errorKebun, setErrorKebun] = useState("");
+  const [errorParit, setErrorParit] = useState("");
 
-  const [sorting, setSorting] =
-    useState([]);
+  // ============================================================
+  // TABLE STATE
+  // ============================================================
 
-  const [globalFilter, setGlobalFilter] =
-    useState("");
+  const [sorting, setSorting] = useState([]);
+  const [globalFilter, setGlobalFilter] = useState("");
 
-  const [pagination, setPagination] =
-    useState({
-      pageIndex: 0,
-      pageSize: 10,
-    });
+  /*
+   * PENTING:
+   *
+   * pageIndex dimulai dari 0.
+   *
+   * pageIndex 0 = data 1 - 10
+   * pageIndex 1 = data 11 - 20
+   * pageIndex 2 = data 21 - 30
+   * dst.
+   */
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
-  /* =======================================================
-     KOLOM DATA KEBUN
-     ======================================================= */
+  // ============================================================
+  // FETCH DATA KEBUN
+  // ============================================================
 
-const columnsKebun = useMemo(() => {
-  return [
-    {
-      header: "No",
-      id: "index",
-      cell: (info) => info.row.index + 1,
-    },
+  useEffect(() => {
+    const fetchDataKebun = async () => {
+      setLoadingKebun(true);
+      setErrorKebun("");
 
-    {
-      header: "Kecamatan",
-      accessorKey: "Kecamatan",
-    },
+      try {
+        const params = new URLSearchParams();
 
-    {
-      header: "Desa",
-      accessorKey: "Desa",
-    },
+        params.set("service", "WFS");
+        params.set("version", "1.0.0");
+        params.set("request", "GetFeature");
+        params.set("typeName", "risetids:Infrastruktur_Data_Spasial");
+        params.set("outputFormat", "application/json");
+        params.set("srsName", "EPSG:4326");
+        params.set("maxFeatures", "10000");
 
-    {
-      header: "Nama Pemilik",
-      accessorKey: "Nama Pemilik",
-    },
+        const url = GEOSERVER_WFS_URL + "?" + params.toString();
 
-    {
-      header: "Luas Lahan (Ha)",
-      accessorKey: "Luas Lahan (Ha)",
-    },
+        const response = await fetch(url);
 
-    {
-      header: "Jumlah Pohon",
-      accessorKey: "Jumlah Pohon",
-    },
+        if (!response.ok) {
+          throw new Error(
+            "Gagal mengambil data kebun. Status HTTP: " +
+              response.status
+          );
+        }
 
-    {
-      header: "Pola Budidaya",
-      accessorKey: "Pola Budidaya",
-    },
-  ];
-}, []);
+        const result = await response.json();
 
-  /* =======================================================
-     KOLOM DATA PARIT / TANGGUL
-     ======================================================= */
+        if (!result.features) {
+          setDataKebun([]);
+          return;
+        }
 
-const columnsParit = useMemo(() => {
-  return [
-    {
-      header: "No",
-      id: "index",
-      cell: (info) => info.row.index + 1,
-    },
+        const rows = result.features.map((feature, index) => {
+          const properties = feature.properties || {};
 
-    {
-      header: "Wilayah",
-      accessorKey: "Wilayah",
-    },
+          return {
+            id:
+              feature.id ||
+              "kebun-" +
+                String(index + 1),
 
-    {
-      header: "Status Parit",
-      accessorKey: "Status Parit",
-    },
+            Kecamatan:
+              properties["Kecamatan"] || "",
 
-    {
-      header: "Nama Parit/Tanggul",
-      accessorKey: "Nama",
-    },
+            Desa:
+              properties["Desa"] || "",
 
-    {
-      header: "Desa",
-      accessorKey: "Desa",
-    },
+            "Nama Pemilik":
+              properties["Nama Pemilik"] || "",
 
-    {
-      header: "Kecamatan",
-      accessorKey: "Kecamatan",
-    },
+            "Luas Lahan (Ha)":
+              properties["Luas Lahan (Ha)"] || "",
 
-    {
-      header: "Panjang (km)",
-      accessorKey:
-        "Panjang Parit/Tanggul (km)",
-    },
+            "Jumlah Pohon":
+              properties["Jumlah Pohon"] || "",
 
-    {
-      header: "Lebar (m)",
-      accessorKey:
-        "Lebar Parit/Tanggul (m)",
-    },
+            "Pola Budidaya":
+              properties["Pola Budidaya"] || "",
+          };
+        });
 
-    {
-      header: "Permasalahan",
-      accessorKey: "Permasalahan",
-    },
+        setDataKebun(rows);
 
-    {
-      header: "Realisasi",
-      accessorKey: "Realisasi",
-    },
+        // Kembali ke halaman pertama setelah data berhasil dimuat
+        setPagination({
+          pageIndex: 0,
+          pageSize: 10,
+        });
+      } catch (error) {
+        console.error("Error data kebun:", error);
 
-    {
-      header: "Tahun Perbaikan",
-      accessorKey: "Tahun Perbaikan",
-    },
+        setErrorKebun(
+          error.message || "Terjadi kesalahan saat mengambil data kebun."
+        );
 
-    {
-      header: "Pendanaan",
-      accessorKey: "Pendanaan",
-    },
-  ];
-}, []);
+        setDataKebun([]);
+      } finally {
+        setLoadingKebun(false);
+      }
+    };
 
-  /* =======================================================
-     KOLOM AKTIF
-     ======================================================= */
+    fetchDataKebun();
+  }, []);
 
-  const currentColumns =
+  // ============================================================
+  // FETCH DATA PARIT / TANGGUL
+  // ============================================================
+
+  useEffect(() => {
+    const fetchDataParit = async () => {
+      setLoadingParit(true);
+      setErrorParit("");
+
+      try {
+        const params = new URLSearchParams();
+
+        params.set("service", "WFS");
+        params.set("version", "1.0.0");
+        params.set("request", "GetFeature");
+        params.set("typeName", "risetids:Parit_Tanggul");
+        params.set("outputFormat", "application/json");
+        params.set("srsName", "EPSG:4326");
+        params.set("maxFeatures", "10000");
+
+        const url = GEOSERVER_WFS_URL + "?" + params.toString();
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error(
+            "Gagal mengambil data parit/tanggul. Status HTTP: " +
+              response.status
+          );
+        }
+
+        const result = await response.json();
+
+        if (!result.features) {
+          setDataParit([]);
+          return;
+        }
+
+        const rows = result.features.map((feature, index) => {
+          const properties = feature.properties || {};
+
+          return {
+            id:
+              feature.id ||
+              "parit-" +
+                String(index + 1),
+
+            Wilayah:
+              properties["Wilayah"] || "",
+
+            "Status Parit":
+              properties["Status Parit"] || "",
+
+            Nama:
+              properties["Nama"] || "",
+
+            Desa:
+              properties["Desa"] || "",
+
+            Kecamatan:
+              properties["Kecamatan"] || "",
+
+            "Panjang Parit/Tanggul (km)":
+              properties["Panjang Parit/Tanggul (km)"] || "",
+
+            "Lebar Parit/Tanggul (m)":
+              properties["Lebar Parit/Tanggul (m)"] || "",
+
+            Permasalahan:
+              properties["Permasalahan"] || "",
+
+            Realisasi:
+              properties["Realisasi"] || "",
+
+            "Tahun Perbaikan":
+              properties["Tahun Perbaikan"] || "",
+
+            Pendanaan:
+              properties["Pendanaan"] || "",
+          };
+        });
+
+        setDataParit(rows);
+
+        // Kembali ke halaman pertama setelah data berhasil dimuat
+        setPagination({
+          pageIndex: 0,
+          pageSize: 10,
+        });
+      } catch (error) {
+        console.error("Error data parit:", error);
+
+        setErrorParit(
+          error.message ||
+            "Terjadi kesalahan saat mengambil data parit/tanggul."
+        );
+
+        setDataParit([]);
+      } finally {
+        setLoadingParit(false);
+      }
+    };
+
+    fetchDataParit();
+  }, []);
+
+  // ============================================================
+  // KOLOM TABEL KEBUN
+  // ============================================================
+
+  const columnsKebun = useMemo(
+    () => [
+      {
+        header: "No",
+        id: "nomor",
+        cell: (info) => {
+          /*
+           * info.row.index adalah posisi baris setelah proses
+           * pagination.
+           *
+           * Karena tabel sudah melakukan pagination,
+           * halaman:
+           *
+           * 1 -> 0 sampai 9
+           * 2 -> 0 sampai 9
+           * 3 -> 0 sampai 9
+           *
+           * Maka kita tambahkan offset halaman.
+           */
+          return (
+            info.row.index +
+            1 +
+            pagination.pageIndex * pagination.pageSize
+          );
+        },
+      },
+
+      {
+        header: "Kecamatan",
+        accessorKey: "Kecamatan",
+      },
+
+      {
+        header: "Desa",
+        accessorKey: "Desa",
+      },
+
+      {
+        header: "Nama Pemilik",
+        accessorKey: "Nama Pemilik",
+      },
+
+      {
+        header: "Luas Lahan (Ha)",
+        accessorKey: "Luas Lahan (Ha)",
+      },
+
+      {
+        header: "Jumlah Pohon",
+        accessorKey: "Jumlah Pohon",
+      },
+
+      {
+        header: "Pola Budidaya",
+        accessorKey: "Pola Budidaya",
+      },
+    ],
+    [pagination.pageIndex, pagination.pageSize]
+  );
+
+  // ============================================================
+  // KOLOM TABEL PARIT / TANGGUL
+  // ============================================================
+
+  const columnsParit = useMemo(
+    () => [
+      {
+        header: "No",
+        id: "nomor",
+        cell: (info) => {
+          return (
+            info.row.index +
+            1 +
+            pagination.pageIndex * pagination.pageSize
+          );
+        },
+      },
+
+      {
+        header: "Wilayah",
+        accessorKey: "Wilayah",
+      },
+
+      {
+        header: "Status Parit",
+        accessorKey: "Status Parit",
+      },
+
+      {
+        header: "Nama Parit/Tanggul",
+        accessorKey: "Nama",
+      },
+
+      {
+        header: "Desa",
+        accessorKey: "Desa",
+      },
+
+      {
+        header: "Kecamatan",
+        accessorKey: "Kecamatan",
+      },
+
+      {
+        header: "Panjang (km)",
+        accessorKey: "Panjang Parit/Tanggul (km)",
+      },
+
+      {
+        header: "Lebar (m)",
+        accessorKey: "Lebar Parit/Tanggul (m)",
+      },
+
+      {
+        header: "Permasalahan",
+        accessorKey: "Permasalahan",
+      },
+
+      {
+        header: "Realisasi",
+        accessorKey: "Realisasi",
+      },
+
+      {
+        header: "Tahun Perbaikan",
+        accessorKey: "Tahun Perbaikan",
+      },
+
+      {
+        header: "Pendanaan",
+        accessorKey: "Pendanaan",
+      },
+    ],
+    [pagination.pageIndex, pagination.pageSize]
+  );
+
+  // ============================================================
+  // DATA YANG AKTIF
+  // ============================================================
+
+  const activeData =
+    activeTab === "kebun"
+      ? dataKebun
+      : dataParit;
+
+  const activeColumns =
     activeTab === "kebun"
       ? columnsKebun
       : columnsParit;
 
-  /* =======================================================
-     REACT TABLE
-     ======================================================= */
+  // ============================================================
+  // TABLE INSTANCE
+  // ============================================================
 
   const table = useReactTable({
-
-    data: data,
-
-    columns: currentColumns,
-
-    getCoreRowModel:
-      getCoreRowModel(),
-
-    getSortedRowModel:
-      getSortedRowModel(),
-
-    getFilteredRowModel:
-      getFilteredRowModel(),
-
-    getPaginationRowModel:
-      getPaginationRowModel(),
+    data: activeData,
+    columns: activeColumns,
 
     state: {
       sorting: sorting,
@@ -208,619 +416,287 @@ const columnsParit = useMemo(() => {
       pagination: pagination,
     },
 
-    onSortingChange:
-      setSorting,
+    onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
 
-    onGlobalFilterChange:
-      setGlobalFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
 
-    onPaginationChange:
-      setPagination,
-
+    /*
+     * Jangan biarkan React Table mengubah pageIndex
+     * secara otomatis ketika data berubah.
+     */
     autoResetPageIndex: false,
 
+    /*
+     * Jumlah baris per halaman.
+     */
+    manualPagination: false,
   });
 
-  /* =======================================================
-     AMBIL DATA DARI GEOSERVER
-     ======================================================= */
+  // ============================================================
+  // RESET HALAMAN KETIKA BERPINDAH TAB
+  // ============================================================
 
   useEffect(() => {
-
-    const controller =
-      new AbortController();
-
-    const fetchData = async () => {
-
-      setIsLoading(true);
-
-      setErrorMessage("");
-
-      try {
-
-        /* -----------------------------------------------
-           Menentukan layer WFS
-           ----------------------------------------------- */
-
-        let layerName = "";
-
-        if (activeTab === "kebun") {
-
-          layerName =
-            "risetids:Infrastruktur_Data_Spasial";
-
-        } else {
-
-          layerName =
-            "risetids:Parit_Tanggul";
-        }
-
-        /* -----------------------------------------------
-           Membuat parameter WFS
-           ----------------------------------------------- */
-
-        const params =
-          new URLSearchParams();
-
-        params.set(
-          "service",
-          "WFS"
-        );
-
-        params.set(
-          "version",
-          "1.0.0"
-        );
-
-        params.set(
-          "request",
-          "GetFeature"
-        );
-
-        params.set(
-          "typeName",
-          layerName
-        );
-
-        params.set(
-          "outputFormat",
-          "application/json"
-        );
-
-        params.set(
-          "srsName",
-          "EPSG:4326"
-        );
-
-        params.set(
-          "maxFeatures",
-          "10000"
-        );
-
-        /* -----------------------------------------------
-           URL WFS
-           ----------------------------------------------- */
-
-        const url =
-          GEOSERVER_WFS_URL +
-          "?" +
-          params.toString();
-
-        console.log(
-          "Mengambil WFS:",
-          url
-        );
-
-        /* -----------------------------------------------
-           FETCH
-           ----------------------------------------------- */
-
-        const response =
-          await fetch(url, {
-            method: "GET",
-
-            signal:
-              controller.signal,
-
-            cache: "no-store",
-          });
-
-        /* -----------------------------------------------
-           CEK HTTP
-           ----------------------------------------------- */
-
-        if (!response.ok) {
-
-          throw new Error(
-            "GeoServer mengembalikan HTTP " +
-            response.status
-          );
-        }
-
-        /* -----------------------------------------------
-           BACA RESPONSE
-           ----------------------------------------------- */
-
-        const responseText =
-          await response.text();
-
-        if (!responseText) {
-
-          throw new Error(
-            "GeoServer mengembalikan data kosong."
-          );
-        }
-
-        /* -----------------------------------------------
-           PARSE JSON
-           ----------------------------------------------- */
-
-        let result;
-
-        try {
-
-          result =
-            JSON.parse(responseText);
-
-        } catch (jsonError) {
-
-          console.error(
-            "Response GeoServer:",
-            responseText
-          );
-
-          throw new Error(
-            "Response GeoServer bukan JSON. Periksa URL WFS, GeoServer, atau konfigurasi proxy."
-          );
-        }
-
-        /* -----------------------------------------------
-           CEK FEATURE
-           ----------------------------------------------- */
-
-        if (
-          !result ||
-          !Array.isArray(
-            result.features
-          )
-        ) {
-
-          console.error(
-            "Response WFS:",
-            result
-          );
-
-          throw new Error(
-            "Response WFS tidak memiliki data features."
-          );
-        }
-
-        /* -----------------------------------------------
-           UBAH GEOJSON MENJADI DATA TABEL
-           ----------------------------------------------- */
-
-        const formattedData =
-          result.features.map(
-            (feature) => {
-
-              return (
-                feature.properties || {}
-              );
-
-            }
-          );
-
-        console.log(
-          "Jumlah data:",
-          formattedData.length
-        );
-
-        console.log(
-          "Data:",
-          formattedData
-        );
-
-        /* -----------------------------------------------
-           SIMPAN DATA
-           ----------------------------------------------- */
-
-        setData(
-          formattedData
-        );
-
-        /* -----------------------------------------------
-           RESET TABEL
-           ----------------------------------------------- */
-
-        setPagination({
-          pageIndex: 0,
-          pageSize: 10,
-        });
-
-        setGlobalFilter("");
-
-        setSorting([]);
-
-      } catch (error) {
-
-        if (
-          error.name ===
-          "AbortError"
-        ) {
-          return;
-        }
-
-        console.error(
-          "Gagal mengambil data dari GeoServer:",
-          error
-        );
-
-        setData([]);
-
-        setErrorMessage(
-          error.message ||
-          "Gagal mengambil data dari GeoServer."
-        );
-
-      } finally {
-
-        setIsLoading(false);
-
-      }
-    };
-
-    fetchData();
-
-    return () => {
-      controller.abort();
-    };
-
+    setPagination({
+      pageIndex: 0,
+      pageSize: 10,
+    });
+
+    setGlobalFilter("");
+    setSorting([]);
   }, [activeTab]);
 
-  /* =======================================================
-     GANTI TAB
-     ======================================================= */
+  // ============================================================
+  // JUMLAH DATA
+  // ============================================================
 
-  const handleTabChange =
-    (tab) => {
+  const totalData = activeData.length;
 
-      setActiveTab(tab);
+  const totalPages = table.getPageCount();
 
-      setData([]);
+  const currentPage = pagination.pageIndex + 1;
 
-      setErrorMessage("");
+  const startData =
+    totalData === 0
+      ? 0
+      : pagination.pageIndex * pagination.pageSize + 1;
 
-      setGlobalFilter("");
+  const endData = Math.min(
+    (pagination.pageIndex + 1) * pagination.pageSize,
+    totalData
+  );
 
-      setSorting([]);
+  // ============================================================
+  // LOADING
+  // ============================================================
 
-      setPagination({
-        pageIndex: 0,
-        pageSize: 10,
-      });
-    };
+  const isLoading =
+    activeTab === "kebun"
+      ? loadingKebun
+      : loadingParit;
 
-  /* =======================================================
-     RENDER
-     ======================================================= */
+  // ============================================================
+  // ERROR
+  // ============================================================
+
+  const error =
+    activeTab === "kebun"
+      ? errorKebun
+      : errorParit;
+
+  // ============================================================
+  // RENDER
+  // ============================================================
 
   return (
+    <div className="w-full h-full bg-gray-100 p-4">
 
-    <div
-      className="
-        min-h-screen
-        bg-[#f0f2f5]
-        pt-28
-        px-8
-        pb-8
-        font-sans
-      "
-    >
+      {/* ======================================================
+          HEADER
+      ====================================================== */}
 
-      <Navbar />
+      <div className="bg-white rounded-xl shadow-md p-5 mb-4">
 
-      <div
-        className="
-          bg-white
-          rounded-2xl
-          shadow-sm
-          border
-          border-gray-100
-          p-6
-          h-[85vh]
-          flex
-          flex-col
-        "
-      >
+        <h1 className="text-2xl font-bold text-gray-800">
+          Tabel Data
+        </h1>
 
-        {/* =================================================
-            HEADER
-            ================================================= */}
+        <p className="text-sm text-gray-500 mt-1">
+          Data kebun petani dan parit/tanggul
+        </p>
 
-        <div
-          className="
-            flex
-            justify-between
-            items-center
-            border-b
-            border-gray-200
-            mb-4
-            pb-3
-          "
-        >
+      </div>
 
-          {/* TAB */}
+      {/* ======================================================
+          TAB
+      ====================================================== */}
 
-          <div
-            className="
-              flex
-              gap-8
-            "
+      <div className="bg-white rounded-xl shadow-md mb-4">
+
+        <div className="flex border-b">
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("kebun")}
+            className={
+              activeTab === "kebun"
+                ? "px-6 py-3 font-semibold text-green-700 border-b-2 border-green-600"
+                : "px-6 py-3 font-semibold text-gray-500 hover:text-green-600"
+            }
           >
+            Data Kebun Petani
+          </button>
 
-            <button
-              type="button"
-              onClick={() =>
-                handleTabChange(
-                  "kebun"
-                )
-              }
-              className={
-                activeTab === "kebun"
-                  ? "font-bold text-[#1268A8] border-b-2 border-[#1268A8] pb-2"
-                  : "font-medium text-gray-500 pb-2"
-              }
-            >
-              Data Kebun Petani
-            </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("parit")}
+            className={
+              activeTab === "parit"
+                ? "px-6 py-3 font-semibold text-green-700 border-b-2 border-green-600"
+                : "px-6 py-3 font-semibold text-gray-500 hover:text-green-600"
+            }
+          >
+            Parit dan Tanggul
+          </button>
 
-            <button
-              type="button"
-              onClick={() =>
-                handleTabChange(
-                  "parit"
-                )
-              }
-              className={
-                activeTab === "parit"
-                  ? "font-bold text-[#1268A8] border-b-2 border-[#1268A8] pb-2"
-                  : "font-medium text-gray-500 pb-2"
-              }
-            >
-              Parit dan Tanggul
-            </button>
+        </div>
+
+      </div>
+
+      {/* ======================================================
+          TABLE CONTAINER
+      ====================================================== */}
+
+      <div className="bg-white rounded-xl shadow-md p-4">
+
+        {/* SEARCH */}
+
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+
+          <div>
+
+            <h2 className="text-lg font-semibold text-gray-800">
+              {activeTab === "kebun"
+                ? "Data Kebun Petani"
+                : "Data Parit dan Tanggul"}
+            </h2>
+
+            <p className="text-sm text-gray-500">
+              Menampilkan data {startData} - {endData} dari {totalData}
+            </p>
 
           </div>
 
-          {/* SEARCH */}
-
-          <div
-            className="
-              relative
-              mb-2
-            "
-          >
+          <div>
 
             <input
               type="text"
               value={globalFilter}
               onChange={(event) =>
-                setGlobalFilter(
-                  event.target.value
-                )
+                setGlobalFilter(event.target.value)
               }
               placeholder="Cari data..."
-              className="
-                w-64
-                border
-                border-gray-300
-                rounded-lg
-                px-4
-                py-2
-                text-sm
-                focus:outline-none
-                focus:ring-2
-                focus:ring-blue-300
-              "
+              className="border border-gray-300 rounded-lg px-4 py-2 w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-green-500"
             />
 
           </div>
 
         </div>
 
-        {/* =================================================
-            PESAN ERROR
-            ================================================= */}
+        {/* ERROR */}
 
-        {errorMessage ? (
-
-          <div
-            className="
-              mb-4
-              rounded-lg
-              border
-              border-red-200
-              bg-red-50
-              px-4
-              py-3
-              text-sm
-              text-red-700
-            "
-          >
-
-            <strong>
-              Data tidak dapat dimuat.
-            </strong>
-
-            <div className="mt-1">
-              {errorMessage}
-            </div>
-
-            <div className="mt-2 text-xs">
-              Periksa koneksi ke GeoServer
-              dan konfigurasi proxy.
-            </div>
-
+        {error && (
+          <div className="mb-4 p-3 rounded-lg bg-red-100 text-red-700 text-sm">
+            {error}
           </div>
+        )}
 
-        ) : null}
+        {/* LOADING */}
 
-        {/* =================================================
-            TABEL
-            ================================================= */}
+        {isLoading ? (
+          <div className="py-10 text-center text-gray-500">
+            Memuat data...
+          </div>
+        ) : (
 
-        <div
-          className="
-            flex-1
-            mt-2
-            overflow-auto
-            min-h-0
-          "
-        >
+          <>
 
-          {isLoading ? (
+            {/* =================================================
+                TABLE
+            ================================================== */}
 
-            <div
-              className="
-                flex
-                h-full
-                items-center
-                justify-center
-                text-gray-500
-              "
-            >
+            <div className="overflow-x-auto">
 
-              Memuat data
-              GeoServer...
+              <table className="min-w-full border-collapse">
 
-            </div>
+                <thead>
 
-          ) : data.length === 0 ? (
-
-            <div
-              className="
-                flex
-                h-full
-                items-center
-                justify-center
-                text-gray-500
-              "
-            >
-
-              Tidak ada data
-              yang ditemukan.
-
-            </div>
-
-          ) : (
-
-            <table
-              className="
-                min-w-full
-                border-collapse
-                text-sm
-              "
-            >
-
-              {/* =================================================
-                  HEADER TABEL
-                  ================================================= */}
-
-              <thead
-                className="
-                  sticky
-                  top-0
-                  z-10
-                  bg-[#1268A8]
-                  text-white
-                "
-              >
-
-                {table
-                  .getHeaderGroups()
-                  .map(
+                  {table.getHeaderGroups().map(
                     (headerGroup) => (
-
                       <tr
-                        key={
-                          headerGroup.id
-                        }
+                        key={headerGroup.id}
+                        className="bg-gray-100"
                       >
 
                         {headerGroup.headers.map(
                           (header) => (
-
                             <th
-                              key={
-                                header.id
-                              }
-                              className="
-                                border
-                                border-blue-300
-                                px-4
-                                py-3
-                                text-left
-                                whitespace-nowrap
-                                font-semibold
-                              "
+                              key={header.id}
+                              className="border border-gray-300 px-3 py-3 text-left text-sm font-semibold text-gray-700 whitespace-nowrap"
                             >
 
                               {header.isPlaceholder
                                 ? null
-                                : flexRender(
-                                    header.column.columnDef.header,
-                                    header.getContext()
-                                  )}
+                                : (
+                                  <button
+                                    type="button"
+                                    onClick={header.column.getToggleSortingHandler()}
+                                    className="font-semibold"
+                                  >
+
+                                    {flexRender(
+                                      header.column.columnDef
+                                        .header,
+                                      header.getContext()
+                                    )}
+
+                                    {header.column.getIsSorted() ===
+                                    "asc"
+                                      ? " ↑"
+                                      : header.column.getIsSorted() ===
+                                        "desc"
+                                      ? " ↓"
+                                      : ""}
+
+                                  </button>
+                                )}
 
                             </th>
-
                           )
                         )}
 
                       </tr>
-
                     )
                   )}
 
-              </thead>
+                </thead>
 
-              {/* =================================================
-                  BODY TABEL
-                  ================================================= */}
+                <tbody>
 
-              <tbody>
+                  {table.getRowModel().rows.length === 0 ? (
 
-                {table
-                  .getRowModel()
-                  .rows
-                  .map(
-                    (row) => (
+                    <tr>
 
-                      <tr
-                        key={
-                          row.id
-                        }
-                        className="
-                          hover:bg-gray-50
-                        "
+                      <td
+                        colSpan={activeColumns.length}
+                        className="border border-gray-300 px-4 py-8 text-center text-gray-500"
                       >
+                        Tidak ada data.
+                      </td>
 
-                        {row
-                          .getVisibleCells()
-                          .map(
+                    </tr>
+
+                  ) : (
+
+                    table.getRowModel().rows.map(
+                      (row) => (
+
+                        <tr
+                          key={row.id}
+                          className="hover:bg-gray-50"
+                        >
+
+                          {row.getVisibleCells().map(
                             (cell) => (
 
                               <td
-                                key={
-                                  cell.id
-                                }
-                                className="
-                                  border
-                                  border-gray-200
-                                  px-4
-                                  py-3
-                                  whitespace-nowrap
-                                "
+                                key={cell.id}
+                                className="border border-gray-300 px-3 py-2 text-sm text-gray-700 whitespace-nowrap"
                               >
 
                                 {flexRender(
@@ -833,133 +709,141 @@ const columnsParit = useMemo(() => {
                             )
                           )}
 
-                      </tr>
+                        </tr>
 
+                      )
                     )
+
                   )}
 
-              </tbody>
+                </tbody>
 
-            </table>
-
-          )}
-
-        </div>
-
-        {/* =================================================
-            PAGINATION
-            ================================================= */}
-
-        {!isLoading &&
-        data.length > 0 ? (
-
-          <div
-            className="
-              flex
-              items-center
-              justify-between
-              border-t
-              border-gray-200
-              pt-4
-              mt-4
-            "
-          >
-
-            {/* INFORMASI */}
-
-            <div
-              className="
-                text-sm
-                text-gray-500
-              "
-            >
-
-              Halaman{" "}
-              {pagination.pageIndex + 1}
-              {" "}dari{" "}
-              {table.getPageCount()}
+              </table>
 
             </div>
 
-            {/* BUTTON */}
+            {/* =================================================
+                PAGINATION
+            ================================================== */}
 
-            <div
-              className="
-                flex
-                items-center
-                gap-2
-              "
-            >
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4">
 
-              <button
-                type="button"
-                onClick={() =>
-                  table.previousPage()
-                }
-                disabled={
-                  !table.getCanPreviousPage()
-                }
-                className="
-                  px-3
-                  py-2
-                  border
-                  rounded-lg
-                  text-sm
-                  disabled:opacity-40
-                  disabled:cursor-not-allowed
-                  hover:bg-gray-50
-                "
-              >
-                Sebelumnya
-              </button>
+              {/* INFO */}
 
-              <button
-                type="button"
-                onClick={() =>
-                  table.nextPage()
-                }
-                disabled={
-                  !table.getCanNextPage()
-                }
-                className="
-                  px-3
-                  py-2
-                  border
-                  rounded-lg
-                  text-sm
-                  disabled:opacity-40
-                  disabled:cursor-not-allowed
-                  hover:bg-gray-50
-                "
-              >
-                Berikutnya
-              </button>
+              <div className="text-sm text-gray-600">
 
-              {/* JUMLAH DATA */}
+                Halaman{" "}
+                <span className="font-semibold">
+                  {currentPage}
+                </span>{" "}
+                dari{" "}
+                <span className="font-semibold">
+                  {totalPages}
+                </span>
 
-              <span
-                className="
-                  ml-2
-                  text-sm
-                  text-gray-500
-                "
-              >
-                Total:
-                {" "}
-                {table.getFilteredRowModel().rows.length}
-                {" "}data
-              </span>
+              </div>
+
+              {/* BUTTON */}
+
+              <div className="flex items-center gap-2">
+
+                <button
+                  type="button"
+                  onClick={() => table.setPageIndex(0)}
+                  disabled={!table.getCanPreviousPage()}
+                  className="px-3 py-2 border rounded-lg text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100"
+                >
+                  «
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                  className="px-3 py-2 border rounded-lg text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100"
+                >
+                  Sebelumnya
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                  className="px-3 py-2 border rounded-lg text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100"
+                >
+                  Berikutnya
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    table.setPageIndex(
+                      Math.max(
+                        table.getPageCount() - 1,
+                        0
+                      )
+                    )
+                  }
+                  disabled={!table.getCanNextPage()}
+                  className="px-3 py-2 border rounded-lg text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100"
+                >
+                  »
+                </button>
+
+              </div>
+
+              {/* PAGE SIZE */}
+
+              <div className="flex items-center gap-2">
+
+                <span className="text-sm text-gray-600">
+                  Tampilkan
+                </span>
+
+                <select
+                  value={pagination.pageSize}
+                  onChange={(event) => {
+                    setPagination({
+                      pageIndex: 0,
+                      pageSize: Number(event.target.value),
+                    });
+                  }}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                >
+
+                  <option value={10}>
+                    10
+                  </option>
+
+                  <option value={20}>
+                    20
+                  </option>
+
+                  <option value={50}>
+                    50
+                  </option>
+
+                  <option value={100}>
+                    100
+                  </option>
+
+                </select>
+
+                <span className="text-sm text-gray-600">
+                  data
+                </span>
+
+              </div>
 
             </div>
 
-          </div>
+          </>
 
-        ) : null}
+        )}
 
       </div>
 
     </div>
-
   );
 };
 

@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://openings-further-southern-vessels.trycloudflare.com/geoserver/:match"
+      "destination": "https://fruits-gtk-incidence-pulled.trycloudflare.com/geoserver/:match"
     }, {
       "source": "/(.*)",
       "destination": "/"

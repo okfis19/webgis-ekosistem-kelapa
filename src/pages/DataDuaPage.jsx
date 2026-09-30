@@ -1,7 +1,7 @@
 import React, {
+  useState,
   useEffect,
   useMemo,
-  useState,
 } from "react";
 
 import Navbar from "../components/Navbar";
@@ -16,56 +16,65 @@ import {
 } from "@tanstack/react-table";
 
 /* =========================================================
-   KONFIGURASI GEOSERVER
-   HARUS SAMA DENGAN MapPage.jsx
+   GEOSERVER WFS
    ========================================================= */
 
-const GEOSERVER_WFS_URL = "/geoserver/risetids/ows";
+const GEOSERVER_WFS_URL =
+  "/geoserver/webgis/ows";
 
 /* =========================================================
-   NAMA LAYER
-   HARUS SAMA DENGAN GeoServer
-   ========================================================= */
-
-const WFS_LAYER_KEBUN = "risetids:Infrastruktur_Data_Spasial";
-const WFS_LAYER_PARIT = "risetids:Parit_Tanggul";
-
-/* =========================================================
-   DATA PAGE
+   DATA DUA PAGE
    ========================================================= */
 
 const DataDuaPage = () => {
-  const [activeTab, setActiveTab] = useState("kebun");
 
-  const [data, setData] = useState([]);
+  /* =======================================================
+     STATE
+     ======================================================= */
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] =
+    useState("kebun");
 
-  const [error, setError] = useState("");
+  const [data, setData] =
+    useState([]);
 
-  const [sorting, setSorting] = useState([]);
+  const [isLoading, setIsLoading] =
+    useState(false);
 
-  const [globalFilter, setGlobalFilter] = useState("");
+  const [errorMessage, setErrorMessage] =
+    useState("");
 
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 10,
-  });
+  const [sorting, setSorting] =
+    useState([]);
+
+  const [globalFilter, setGlobalFilter] =
+    useState("");
+
+  const [pagination, setPagination] =
+    useState({
+      pageIndex: 0,
+      pageSize: 10,
+    });
 
   /* =======================================================
      KOLOM DATA KEBUN
      ======================================================= */
 
-  const columnsKebun = useMemo(
-    () => [
+  const columnsKebun = useMemo(() => {
+
+    return [
       {
         header: "No",
         id: "index",
-        enableSorting: false,
-        cell: (info) =>
-          info.row.index +
-          1 +
-          pagination.pageIndex * pagination.pageSize,
+
+        cell: (info) => {
+          return (
+            info.row.index +
+            1 +
+            pagination.pageIndex *
+              pagination.pageSize
+          );
+        },
       },
 
       {
@@ -97,24 +106,32 @@ const DataDuaPage = () => {
         header: "Pola Budidaya",
         accessorKey: "Pola Budidaya",
       },
-    ],
-    [pagination.pageIndex, pagination.pageSize]
-  );
+    ];
+
+  }, [
+    pagination.pageIndex,
+    pagination.pageSize,
+  ]);
 
   /* =======================================================
-     KOLOM DATA PARIT
+     KOLOM DATA PARIT / TANGGUL
      ======================================================= */
 
-  const columnsParit = useMemo(
-    () => [
+  const columnsParit = useMemo(() => {
+
+    return [
       {
         header: "No",
         id: "index",
-        enableSorting: false,
-        cell: (info) =>
-          info.row.index +
-          1 +
-          pagination.pageIndex * pagination.pageSize,
+
+        cell: (info) => {
+          return (
+            info.row.index +
+            1 +
+            pagination.pageIndex *
+              pagination.pageSize
+          );
+        },
       },
 
       {
@@ -144,12 +161,14 @@ const DataDuaPage = () => {
 
       {
         header: "Panjang (km)",
-        accessorKey: "Panjang Parit/Tanggul (km)",
+        accessorKey:
+          "Panjang Parit/Tanggul (km)",
       },
 
       {
         header: "Lebar (m)",
-        accessorKey: "Lebar Parit/Tanggul (m)",
+        accessorKey:
+          "Lebar Parit/Tanggul (m)",
       },
 
       {
@@ -171,12 +190,15 @@ const DataDuaPage = () => {
         header: "Pendanaan",
         accessorKey: "Pendanaan",
       },
-    ],
-    [pagination.pageIndex, pagination.pageSize]
-  );
+    ];
+
+  }, [
+    pagination.pageIndex,
+    pagination.pageSize,
+  ]);
 
   /* =======================================================
-     PILIH KOLOM SESUAI TAB
+     KOLOM AKTIF
      ======================================================= */
 
   const currentColumns =
@@ -185,126 +207,291 @@ const DataDuaPage = () => {
       : columnsParit;
 
   /* =======================================================
-     TANSTACK TABLE
+     REACT TABLE
      ======================================================= */
 
   const table = useReactTable({
-    data,
+
+    data: data,
+
     columns: currentColumns,
 
-    getCoreRowModel: getCoreRowModel(),
+    getCoreRowModel:
+      getCoreRowModel(),
 
-    getSortedRowModel: getSortedRowModel(),
+    getSortedRowModel:
+      getSortedRowModel(),
 
-    getFilteredRowModel: getFilteredRowModel(),
+    getFilteredRowModel:
+      getFilteredRowModel(),
 
-    getPaginationRowModel: getPaginationRowModel(),
+    getPaginationRowModel:
+      getPaginationRowModel(),
 
     state: {
-      sorting,
-      globalFilter,
-      pagination,
+      sorting: sorting,
+      globalFilter: globalFilter,
+      pagination: pagination,
     },
 
-    onSortingChange: setSorting,
+    onSortingChange:
+      setSorting,
 
-    onGlobalFilterChange: setGlobalFilter,
+    onGlobalFilterChange:
+      setGlobalFilter,
 
-    onPaginationChange: setPagination,
+    onPaginationChange:
+      setPagination,
 
     autoResetPageIndex: false,
+
   });
 
   /* =======================================================
-     AMBIL DATA WFS
+     AMBIL DATA DARI GEOSERVER
      ======================================================= */
 
   useEffect(() => {
-    const controller = new AbortController();
+
+    const controller =
+      new AbortController();
 
     const fetchData = async () => {
-      setIsLoading(true);
-      setError("");
-      setData([]);
 
-      /*
-        Set kembali ke halaman pertama
-        setiap kali tab berubah.
-      */
-      setPagination((previous) => ({
-        ...previous,
-        pageIndex: 0,
-      }));
+      setIsLoading(true);
+
+      setErrorMessage("");
 
       try {
-        const layerName =
-          activeTab === "kebun"
-            ? WFS_LAYER_KEBUN
-            : WFS_LAYER_PARIT;
 
-        const params = new URLSearchParams({
-          service: "WFS",
-          version: "1.0.0",
-          request: "GetFeature",
-          typeName: layerName,
-          outputFormat: "application/json",
-        });
+        /* -----------------------------------------------
+           Menentukan layer WFS
+           ----------------------------------------------- */
+
+        let layerName = "";
+
+        if (activeTab === "kebun") {
+
+          layerName =
+            "webgis:Infrastruktur_Data_Spasial";
+
+        } else {
+
+          layerName =
+            "webgis:Parit_Tanggul";
+        }
+
+        /* -----------------------------------------------
+           Membuat parameter WFS
+           ----------------------------------------------- */
+
+        const params =
+          new URLSearchParams();
+
+        params.set(
+          "service",
+          "WFS"
+        );
+
+        params.set(
+          "version",
+          "1.0.0"
+        );
+
+        params.set(
+          "request",
+          "GetFeature"
+        );
+
+        params.set(
+          "typeName",
+          layerName
+        );
+
+        params.set(
+          "outputFormat",
+          "application/json"
+        );
+
+        params.set(
+          "srsName",
+          "EPSG:4326"
+        );
+
+        params.set(
+          "maxFeatures",
+          "10000"
+        );
+
+        /* -----------------------------------------------
+           URL WFS
+           ----------------------------------------------- */
 
         const url =
-          `${GEOSERVER_WFS_URL}?${params.toString()}`;
+          GEOSERVER_WFS_URL +
+          "?" +
+          params.toString();
 
-        const response = await fetch(url, {
-          method: "GET",
-          signal: controller.signal,
-          headers: {
-            "ngrok-skip-browser-warning": "true",
-          },
-        });
+        console.log(
+          "Mengambil WFS:",
+          url
+        );
+
+        /* -----------------------------------------------
+           FETCH
+           ----------------------------------------------- */
+
+        const response =
+          await fetch(url, {
+            method: "GET",
+
+            signal:
+              controller.signal,
+
+            cache: "no-store",
+          });
+
+        /* -----------------------------------------------
+           CEK HTTP
+           ----------------------------------------------- */
 
         if (!response.ok) {
+
           throw new Error(
-            `GeoServer mengembalikan HTTP ${response.status}`
+            "GeoServer mengembalikan HTTP " +
+            response.status
           );
         }
 
-        const result = await response.json();
+        /* -----------------------------------------------
+           BACA RESPONSE
+           ----------------------------------------------- */
+
+        const responseText =
+          await response.text();
+
+        if (!responseText) {
+
+          throw new Error(
+            "GeoServer mengembalikan data kosong."
+          );
+        }
+
+        /* -----------------------------------------------
+           PARSE JSON
+           ----------------------------------------------- */
+
+        let result;
+
+        try {
+
+          result =
+            JSON.parse(responseText);
+
+        } catch (jsonError) {
+
+          console.error(
+            "Response GeoServer:",
+            responseText
+          );
+
+          throw new Error(
+            "Response GeoServer bukan JSON. Periksa URL WFS, GeoServer, atau konfigurasi proxy."
+          );
+        }
+
+        /* -----------------------------------------------
+           CEK FEATURE
+           ----------------------------------------------- */
 
         if (
           !result ||
-          !Array.isArray(result.features)
+          !Array.isArray(
+            result.features
+          )
         ) {
+
+          console.error(
+            "Response WFS:",
+            result
+          );
+
           throw new Error(
-            "Respons GeoServer bukan GeoJSON FeatureCollection."
+            "Response WFS tidak memiliki data features."
           );
         }
 
-        /*
-          Ambil properties dari setiap feature.
-        */
+        /* -----------------------------------------------
+           UBAH GEOJSON MENJADI DATA TABEL
+           ----------------------------------------------- */
 
-        const formattedData = result.features.map(
-          (feature) => feature.properties || {}
+        const formattedData =
+          result.features.map(
+            (feature) => {
+
+              return (
+                feature.properties || {}
+              );
+
+            }
+          );
+
+        console.log(
+          "Jumlah data:",
+          formattedData.length
         );
 
-        setData(formattedData);
-      } catch (err) {
-        if (err.name === "AbortError") {
+        console.log(
+          "Data:",
+          formattedData
+        );
+
+        /* -----------------------------------------------
+           SIMPAN DATA
+           ----------------------------------------------- */
+
+        setData(
+          formattedData
+        );
+
+        /* -----------------------------------------------
+           RESET TABEL
+           ----------------------------------------------- */
+
+        setPagination({
+          pageIndex: 0,
+          pageSize: 10,
+        });
+
+        setGlobalFilter("");
+
+        setSorting([]);
+
+      } catch (error) {
+
+        if (
+          error.name ===
+          "AbortError"
+        ) {
           return;
         }
 
         console.error(
-          "Gagal menarik data dari GeoServer:",
-          err
-        );
-
-        setError(
-          err.message ||
-            "Gagal mengambil data dari GeoServer."
+          "Gagal mengambil data dari GeoServer:",
+          error
         );
 
         setData([]);
+
+        setErrorMessage(
+          error.message ||
+          "Gagal mengambil data dari GeoServer."
+        );
+
       } finally {
+
         setIsLoading(false);
+
       }
     };
 
@@ -313,322 +500,368 @@ const DataDuaPage = () => {
     return () => {
       controller.abort();
     };
+
   }, [activeTab]);
 
   /* =======================================================
      GANTI TAB
      ======================================================= */
 
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
+  const handleTabChange =
+    (tab) => {
 
-    setGlobalFilter("");
+      setActiveTab(tab);
 
-    setSorting([]);
+      setData([]);
 
-    setPagination((previous) => ({
-      ...previous,
-      pageIndex: 0,
-    }));
-  };
+      setErrorMessage("");
+
+      setGlobalFilter("");
+
+      setSorting([]);
+
+      setPagination({
+        pageIndex: 0,
+        pageSize: 10,
+      });
+    };
 
   /* =======================================================
      RENDER
      ======================================================= */
 
   return (
-    <div className="min-h-screen bg-[#f0f2f5] pt-28 px-8 pb-8 font-sans">
+
+    <div
+      className="
+        min-h-screen
+        bg-[#f0f2f5]
+        pt-28
+        px-8
+        pb-8
+        font-sans
+      "
+    >
+
       <Navbar />
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 h-[85vh] flex flex-col">
+      <div
+        className="
+          bg-white
+          rounded-2xl
+          shadow-sm
+          border
+          border-gray-100
+          p-6
+          h-[85vh]
+          flex
+          flex-col
+        "
+      >
 
         {/* =================================================
-            TAB
+            HEADER
             ================================================= */}
 
-        <div className="flex justify-between items-center border-b border-gray-200 mb-6 pb-2">
+        <div
+          className="
+            flex
+            justify-between
+            items-center
+            border-b
+            border-gray-200
+            mb-4
+            pb-3
+          "
+        >
 
-          <div className="flex gap-8">
+          {/* TAB */}
 
-            {/* TAB KEBUN */}
+          <div
+            className="
+              flex
+              gap-8
+            "
+          >
 
             <button
+              type="button"
               onClick={() =>
-                handleTabChange("kebun")
+                handleTabChange(
+                  "kebun"
+                )
               }
-              className={`
-                pb-3
-                text-sm
-                font-bold
-                transition-colors
-                relative
-
-                ${
-                  activeTab === "kebun"
-                    ? "text-[#1268A8]"
-                    : "text-gray-400 hover:text-gray-600"
-                }
-              `}
+              className={
+                activeTab === "kebun"
+                  ? "font-bold text-[#1268A8] border-b-2 border-[#1268A8] pb-2"
+                  : "font-medium text-gray-500 pb-2"
+              }
             >
               Data Kebun Petani
-
-              {activeTab === "kebun" && (
-                <span className="absolute bottom-0 left-0 w-full h-1 bg-[#1268A8] rounded-t-md" />
-              )}
             </button>
 
-            {/* TAB PARIT */}
-
             <button
+              type="button"
               onClick={() =>
-                handleTabChange("parit")
+                handleTabChange(
+                  "parit"
+                )
               }
-              className={`
-                pb-3
-                text-sm
-                font-bold
-                transition-colors
-                relative
-
-                ${
-                  activeTab === "parit"
-                    ? "text-[#1268A8]"
-                    : "text-gray-400 hover:text-gray-600"
-                }
-              `}
+              className={
+                activeTab === "parit"
+                  ? "font-bold text-[#1268A8] border-b-2 border-[#1268A8] pb-2"
+                  : "font-medium text-gray-500 pb-2"
+              }
             >
-              Data Parit dan Tanggul
-
-              {activeTab === "parit" && (
-                <span className="absolute bottom-0 left-0 w-full h-1 bg-[#1268A8] rounded-t-md" />
-              )}
+              Parit dan Tanggul
             </button>
 
           </div>
 
-          {/* =================================================
-              SEARCH
-              ================================================= */}
+          {/* SEARCH */}
 
-          <div className="relative mb-2">
+          <div
+            className="
+              relative
+              mb-2
+            "
+          >
 
             <input
               type="text"
-              value={globalFilter ?? ""}
-              onChange={(e) =>
-                setGlobalFilter(e.target.value)
+              value={globalFilter}
+              onChange={(event) =>
+                setGlobalFilter(
+                  event.target.value
+                )
               }
               placeholder="Cari data..."
               className="
-                pl-10
-                pr-4
-                py-2
+                w-64
                 border
-                border-gray-200
+                border-gray-300
                 rounded-lg
+                px-4
+                py-2
                 text-sm
                 focus:outline-none
                 focus:ring-2
-                focus:ring-[#1268a8]/50
-                transition-all
-                w-64
+                focus:ring-blue-300
               "
             />
-
-            <svg
-              className="w-4 h-4 text-gray-400 absolute left-3 top-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
 
           </div>
 
         </div>
 
         {/* =================================================
-            ERROR
+            PESAN ERROR
             ================================================= */}
 
-        {error && (
-          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
-            <strong>Gagal memuat data:</strong>{" "}
-            {error}
+        {errorMessage ? (
+
+          <div
+            className="
+              mb-4
+              rounded-lg
+              border
+              border-red-200
+              bg-red-50
+              px-4
+              py-3
+              text-sm
+              text-red-700
+            "
+          >
+
+            <strong>
+              Data tidak dapat dimuat.
+            </strong>
+
+            <div className="mt-1">
+              {errorMessage}
+            </div>
+
+            <div className="mt-2 text-xs">
+              Periksa koneksi ke GeoServer
+              dan konfigurasi proxy.
+            </div>
+
           </div>
-        )}
+
+        ) : null}
 
         {/* =================================================
             TABEL
             ================================================= */}
 
-        <div className="flex-1 mt-4 overflow-auto min-h-0">
+        <div
+          className="
+            flex-1
+            mt-2
+            overflow-auto
+            min-h-0
+          "
+        >
 
           {isLoading ? (
 
-            <div className="flex justify-center items-center h-64 text-gray-400 font-bold">
-              Memuat data dari GeoServer...
+            <div
+              className="
+                flex
+                h-full
+                items-center
+                justify-center
+                text-gray-500
+              "
+            >
+
+              Memuat data
+              GeoServer...
+
+            </div>
+
+          ) : data.length === 0 ? (
+
+            <div
+              className="
+                flex
+                h-full
+                items-center
+                justify-center
+                text-gray-500
+              "
+            >
+
+              Tidak ada data
+              yang ditemukan.
+
             </div>
 
           ) : (
 
-            <table className="w-full min-w-max text-left text-sm text-gray-500 border-separate border-spacing-0">
+            <table
+              className="
+                min-w-full
+                border-collapse
+                text-sm
+              "
+            >
 
-              {/* HEADER */}
+              {/* =================================================
+                  HEADER TABEL
+                  ================================================= */}
 
-              <thead className="font-semibold text-gray-600 sticky top-0 z-10 bg-white">
+              <thead
+                className="
+                  sticky
+                  top-0
+                  z-10
+                  bg-[#1268A8]
+                  text-white
+                "
+              >
 
-                {table.getHeaderGroups().map(
-                  (headerGroup) => (
+                {table
+                  .getHeaderGroups()
+                  .map(
+                    (headerGroup) => (
 
-                    <tr key={headerGroup.id}>
+                      <tr
+                        key={
+                          headerGroup.id
+                        }
+                      >
 
-                      {headerGroup.headers.map(
-                        (header, index) => {
+                        {headerGroup.headers.map(
+                          (header) => (
 
-                          const isFirst =
-                            index === 0;
-
-                          const isLast =
-                            index ===
-                            headerGroup.headers.length -
-                              1;
-
-                          const canSort =
-                            header.column.getCanSort();
-
-                          return (
                             <th
-                              key={header.id}
-                              className={`
-                                px-6
-                                py-4
-                                bg-[#F0F2F5]
-                                whitespace-nowrap
-                                select-none
-
-                                ${
-                                  canSort
-                                    ? "cursor-pointer hover:bg-[#e4e7eb]"
-                                    : ""
-                                }
-
-                                transition-colors
-
-                                ${
-                                  isFirst
-                                    ? "rounded-l-full"
-                                    : ""
-                                }
-
-                                ${
-                                  isLast
-                                    ? "rounded-r-full"
-                                    : ""
-                                }
-                              `}
-                              onClick={
-                                canSort
-                                  ? header.column.getToggleSortingHandler()
-                                  : undefined
+                              key={
+                                header.id
                               }
+                              className="
+                                border
+                                border-blue-300
+                                px-4
+                                py-3
+                                text-left
+                                whitespace-nowrap
+                                font-semibold
+                              "
                             >
 
-                              <div className="flex items-center gap-2">
-
-                                {flexRender(
-                                  header.column.columnDef
-                                    .header,
-                                  header.getContext()
-                                )}
-
-                                {header.column.getIsSorted() ===
-                                  "asc" && (
-                                  <span className="text-[#1268a8]">
-                                    ▲
-                                  </span>
-                                )}
-
-                                {header.column.getIsSorted() ===
-                                  "desc" && (
-                                  <span className="text-[#1268a8]">
-                                    ▼
-                                  </span>
-                                )}
-
-                              </div>
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                  )}
 
                             </th>
-                          );
-                        }
-                      )}
 
-                    </tr>
-                  )
-                )}
+                          )
+                        )}
+
+                      </tr>
+
+                    )
+                  )}
 
               </thead>
 
-              {/* BODY */}
+              {/* =================================================
+                  BODY TABEL
+                  ================================================= */}
 
-              <tbody className="bg-white">
+              <tbody>
 
-                <tr>
-                  <td
-                    colSpan={currentColumns.length}
-                    className="h-2"
-                  />
-                </tr>
+                {table
+                  .getRowModel()
+                  .rows
+                  .map(
+                    (row) => (
 
-                {table.getRowModel().rows.map(
-                  (row) => (
-
-                    <tr
-                      key={row.id}
-                      className="hover:bg-gray-50 transition-colors group"
-                    >
-
-                      {row.getVisibleCells().map(
-                        (cell) => (
-
-                          <td
-                            key={cell.id}
-                            className="px-6 py-4 border-b border-gray-100 whitespace-nowrap"
-                          >
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </td>
-
-                        )
-                      )}
-
-                    </tr>
-
-                  )
-                )}
-
-                {/* DATA KOSONG */}
-
-                {data.length === 0 &&
-                  !isLoading && (
-                    <tr>
-                      <td
-                        colSpan={
-                          currentColumns.length
+                      <tr
+                        key={
+                          row.id
                         }
-                        className="text-center py-8 text-gray-400"
+                        className="
+                          hover:bg-gray-50
+                        "
                       >
-                        Data tidak ditemukan di server.
-                      </td>
-                    </tr>
+
+                        {row
+                          .getVisibleCells()
+                          .map(
+                            (cell) => (
+
+                              <td
+                                key={
+                                  cell.id
+                                }
+                                className="
+                                  border
+                                  border-gray-200
+                                  px-4
+                                  py-3
+                                  whitespace-nowrap
+                                "
+                              >
+
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext()
+                                )}
+
+                              </td>
+
+                            )
+                          )}
+
+                      </tr>
+
+                    )
                   )}
 
               </tbody>
@@ -643,25 +876,49 @@ const DataDuaPage = () => {
             PAGINATION
             ================================================= */}
 
-        {!isLoading && data.length > 0 && (
+        {!isLoading &&
+        data.length > 0 ? (
 
-          <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-4 shrink-0">
+          <div
+            className="
+              flex
+              items-center
+              justify-between
+              border-t
+              border-gray-200
+              pt-4
+              mt-4
+            "
+          >
 
-            <span className="text-sm text-gray-500 font-medium">
+            {/* INFORMASI */}
 
-              Menampilkan{" "}
-              {table.getRowModel().rows.length}{" "}
-              dari{" "}
-              {table.getFilteredRowModel().rows.length}{" "}
-              data
+            <div
+              className="
+                text-sm
+                text-gray-500
+              "
+            >
 
-            </span>
+              Halaman{" "}
+              {pagination.pageIndex + 1}
+              {" "}dari{" "}
+              {table.getPageCount()}
 
-            <div className="flex items-center gap-2">
+            </div>
 
-              {/* PREVIOUS */}
+            {/* BUTTON */}
+
+            <div
+              className="
+                flex
+                items-center
+                gap-2
+              "
+            >
 
               <button
+                type="button"
                 onClick={() =>
                   table.previousPage()
                 }
@@ -669,40 +926,21 @@ const DataDuaPage = () => {
                   !table.getCanPreviousPage()
                 }
                 className="
-                  w-8
-                  h-8
-                  flex
-                  items-center
-                  justify-center
-                  rounded-full
+                  px-3
+                  py-2
                   border
-                  border-gray-200
-                  text-gray-500
-                  hover:bg-gray-50
-                  disabled:opacity-50
+                  rounded-lg
+                  text-sm
+                  disabled:opacity-40
                   disabled:cursor-not-allowed
-                  transition-all
+                  hover:bg-gray-50
                 "
               >
-                ‹
+                Sebelumnya
               </button>
 
-              {/* PAGE */}
-
-              <span className="text-sm font-bold text-[#1258a8] px-3">
-                Halaman{" "}
-                {table.getState().pagination.pageIndex +
-                  1}{" "}
-                /{" "}
-                {Math.max(
-                  table.getPageCount(),
-                  1
-                )}
-              </span>
-
-              {/* NEXT */}
-
               <button
+                type="button"
                 onClick={() =>
                   table.nextPage()
                 }
@@ -710,32 +948,44 @@ const DataDuaPage = () => {
                   !table.getCanNextPage()
                 }
                 className="
-                  w-8
-                  h-8
-                  flex
-                  items-center
-                  justify-center
-                  rounded-full
+                  px-3
+                  py-2
                   border
-                  border-gray-200
-                  text-gray-500
-                  hover:bg-gray-50
-                  disabled:opacity-50
+                  rounded-lg
+                  text-sm
+                  disabled:opacity-40
                   disabled:cursor-not-allowed
-                  transition-all
+                  hover:bg-gray-50
                 "
               >
-                ›
+                Berikutnya
               </button>
+
+              {/* JUMLAH DATA */}
+
+              <span
+                className="
+                  ml-2
+                  text-sm
+                  text-gray-500
+                "
+              >
+                Total:
+                {" "}
+                {table.getFilteredRowModel().rows.length}
+                {" "}data
+              </span>
 
             </div>
 
           </div>
 
-        )}
+        ) : null}
 
       </div>
+
     </div>
+
   );
 };
 

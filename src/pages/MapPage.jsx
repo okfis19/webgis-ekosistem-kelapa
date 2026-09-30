@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+
 import {
   MapContainer,
   TileLayer,
@@ -8,6 +9,7 @@ import {
   Popup,
   useMapEvents,
 } from "react-leaflet";
+
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -16,27 +18,26 @@ import LayerPanel from "../components/LayerPanel";
 import LegendPanel from "../components/LegendPanel";
 
 /* =========================================================
-   KONFIGURASI GEOSERVER
+   GEOSERVER
    ========================================================= */
 
-export const GEOSERVER_WMS_URL = "/geoserver/risetids/wms";
-export const GEOSERVER_WFS_URL = "/geoserver/risetids/ows";
+export const GEOSERVER_WMS_URL = "/geoserver/wms";
+export const GEOSERVER_WFS_URL = "/geoserver/webgis/ows";
 
 /* =========================================================
    KONFIGURASI LAYER
-   Nama layer HARUS sama dengan yang ada di GeoServer
    ========================================================= */
 
 export const LAYER_CONFIG = [
   {
     id: "layerAdm",
     name: "Batas Administrasi Kecamatan",
-    wsName: "risetids:Batas_Administrasi_Kecamatan-LN",
+    wsName: "webgis:Batas_Administrasi_Kecamatan-LN",
   },
   {
     id: "layerAdmDesa",
     name: "Batas Administrasi Desa",
-    wsName: "risetids:Batas Administrasi Desa-LN",
+    wsName: "webgis:Batas Administrasi Desa-LN",
   },
   {
     id: "layerKab",
@@ -46,61 +47,63 @@ export const LAYER_CONFIG = [
   {
     id: "layerSungai",
     name: "Sungai Indragiri Hilir",
-    wsName: "risetids:Sungai_Indragiri_Hilir",
+    wsName: "webgis:Sungai_Indragiri_Hilir",
   },
   {
     id: "layerTanah",
     name: "Jenis Tanah",
-    wsName: "risetids:Jenis_Tanah_INHIL",
+    wsName: "webgis:Jenis_Tanah_INHIL",
   },
   {
     id: "layerKelapa",
     name: "Sebaran Perkebunan Kelapa",
-    wsName: "risetids:Sebaran_Kebun_Kelapa",
+    wsName: "webgis:Sebaran_Kebun_Kelapa",
   },
   {
     id: "layerDem",
     name: "Demnas",
-    wsName: "risetids:Demnas_Clip-2",
+    wsName: "webgis:Demnas_Clip-2",
   },
   {
     id: "layerLahan",
     name: "Tutupan Lahan",
-    wsName: "risetids:Tutupan_Lahan",
+    wsName: "webgis:Tutupan_Lahan",
   },
   {
     id: "layerParit",
     name: "Parit dan Tanggul",
-    wsName: "risetids:Parit_Tanggul",
+    wsName: "webgis:Parit_Tanggul",
   },
   {
     id: "layerPolaRuang",
     name: "Rencana Pola Ruang",
-    wsName: "risetids:Rencana Pola Ruang",
+    wsName: "webgis:Rencana Pola Ruang",
   },
 ];
 
 /* =========================================================
    KONFIGURASI NOMOR PARIT
-   Nomor mulai muncul pada zoom 13
    ========================================================= */
 
 const MIN_ZOOM_NOMOR = 13;
 
-/* =========================================================
-   ICON NOMOR PARIT
-   ========================================================= */
-
-const createNomorIcon = (nomor) =>
-  L.divIcon({
+/* Membuat icon nomor */
+const createNomorIcon = (nomor) => {
+  return L.divIcon({
     className: "nomor-parit-wrapper",
-    html: `<div class="nomor-parit">${nomor}</div>`,
+
+    html:
+      '<div class="nomor-parit">' +
+      nomor +
+      "</div>",
+
     iconSize: [26, 26],
     iconAnchor: [13, 13],
   });
+};
 
 /* =========================================================
-   MENCARI TITIK TENGAH GARIS
+   MENGAMBIL TITIK TENGAH GARIS
    ========================================================= */
 
 const getTitikTengah = (geometry) => {
@@ -108,14 +111,19 @@ const getTitikTengah = (geometry) => {
     return null;
   }
 
-  let garis;
+  let garis = [];
 
   if (geometry.type === "LineString") {
     garis = geometry.coordinates;
   } else if (geometry.type === "MultiLineString") {
     garis = geometry.coordinates.reduce(
-      (terpanjang, current) =>
-        current.length > terpanjang.length ? current : terpanjang,
+      (terpanjang, current) => {
+        if (current.length > terpanjang.length) {
+          return current;
+        }
+
+        return terpanjang;
+      },
       []
     );
   } else {
@@ -137,13 +145,22 @@ const getTitikTengah = (geometry) => {
     return null;
   }
 
-  // GeoJSON = [longitude, latitude]
-  // Leaflet = [latitude, longitude]
-  return [Number(titik[1]), Number(titik[0])];
+  /*
+    GeoJSON:
+    [longitude, latitude]
+
+    Leaflet:
+    [latitude, longitude]
+  */
+
+  return [
+    Number(titik[1]),
+    Number(titik[0]),
+  ];
 };
 
 /* =========================================================
-   TRACKER ZOOM
+   TRACKING ZOOM
    ========================================================= */
 
 const ZoomTracker = ({ setZoom }) => {
@@ -157,11 +174,13 @@ const ZoomTracker = ({ setZoom }) => {
 };
 
 /* =========================================================
-   NOMOR PARIT DAN TANGGUL
-   Data berasal dari WFS yang sama dengan DataDuaPage
+   MENAMPILKAN NOMOR PARIT / TANGGUL
    ========================================================= */
 
-const NomorParitTanggul = ({ features, visible }) => {
+const NomorParitTanggul = ({
+  features,
+  visible,
+}) => {
   if (!visible) {
     return null;
   }
@@ -169,25 +188,29 @@ const NomorParitTanggul = ({ features, visible }) => {
   return (
     <>
       {features.map((feature, index) => {
-        const properties = feature?.properties || {};
+        const properties = feature.properties || {};
 
-        const nama = properties["Nama"];
-        const posisi = getTitikTengah(feature?.geometry);
+        const nama = properties.Nama;
 
-        if (!posisi) {
+        const posisi = getTitikTengah(
+          feature.geometry
+        );
+
+        if (!nama || !posisi) {
           return null;
         }
 
-        /*
-          Nomor mengikuti urutan feature dari GeoServer.
-          Sama-sama menggunakan data risetids:Parit_Tanggul
-          seperti DataDuaPage.
-        */
         const nomor = index + 1;
 
         const markerKey =
           feature.id ||
-          `${String(nama || "parit")}-${posisi[0]}-${posisi[1]}-${index}`;
+          String(nama) +
+            "-" +
+            String(posisi[0]) +
+            "-" +
+            String(posisi[1]) +
+            "-" +
+            String(index);
 
         return (
           <Marker
@@ -197,35 +220,7 @@ const NomorParitTanggul = ({ features, visible }) => {
           >
             <Popup>
               <div className="popup-nama-parit">
-                <div className="font-bold">
-                  {nama || "Nama tidak tersedia"}
-                </div>
-
-                {properties["Desa"] && (
-                  <div className="text-xs mt-1">
-                    Desa: {properties["Desa"]}
-                  </div>
-                )}
-
-                {properties["Kecamatan"] && (
-                  <div className="text-xs">
-                    Kecamatan: {properties["Kecamatan"]}
-                  </div>
-                )}
-
-                {properties["Panjang Parit/Tanggul (km)"] !==
-                  undefined && (
-                  <div className="text-xs mt-1">
-                    Panjang:{" "}
-                    {properties["Panjang Parit/Tanggul (km)"]} km
-                  </div>
-                )}
-
-                {properties["Lebar Parit/Tanggul (m)"] !== undefined && (
-                  <div className="text-xs">
-                    Lebar: {properties["Lebar Parit/Tanggul (m)"]} m
-                  </div>
-                )}
+                <strong>{nama}</strong>
               </div>
             </Popup>
           </Marker>
@@ -236,10 +231,13 @@ const NomorParitTanggul = ({ features, visible }) => {
 };
 
 /* =========================================================
-   AMBIL DATA PARIT DARI WFS
+   MENGAMBIL DATA PARIT DARI GEOSERVER WFS
    ========================================================= */
 
-const ParitTanggulData = ({ enabled, zoom }) => {
+const ParitTanggulData = ({
+  enabled,
+  zoom,
+}) => {
   const [features, setFeatures] = useState([]);
   const [error, setError] = useState("");
 
@@ -247,20 +245,25 @@ const ParitTanggulData = ({ enabled, zoom }) => {
     if (!enabled) {
       setFeatures([]);
       setError("");
-      return;
+      return undefined;
     }
 
     const controller = new AbortController();
 
-    const params = new URLSearchParams({
-      service: "WFS",
-      version: "1.0.0",
-      request: "GetFeature",
-      typeName: "risetids:Parit_Tanggul",
-      outputFormat: "application/json",
-    });
+    const params = new URLSearchParams();
 
-    const url = `${GEOSERVER_WFS_URL}?${params.toString()}`;
+    params.set("service", "WFS");
+    params.set("version", "1.0.0");
+    params.set("request", "GetFeature");
+    params.set("typeName", "webgis:Parit_Tanggul");
+    params.set("outputFormat", "application/json");
+    params.set("srsName", "EPSG:4326");
+    params.set("maxFeatures", "10000");
+
+    const url =
+      GEOSERVER_WFS_URL +
+      "?" +
+      params.toString();
 
     const loadFeatures = async () => {
       try {
@@ -269,20 +272,22 @@ const ParitTanggulData = ({ enabled, zoom }) => {
         const response = await fetch(url, {
           method: "GET",
           signal: controller.signal,
-          headers: {
-            "ngrok-skip-browser-warning": "true",
-          },
+          cache: "no-store",
         });
 
         if (!response.ok) {
           throw new Error(
-            `GeoServer WFS mengembalikan HTTP ${response.status}`
+            "GeoServer WFS mengembalikan HTTP " +
+              response.status
           );
         }
 
         const data = await response.json();
 
-        if (!data || !Array.isArray(data.features)) {
+        if (
+          !data ||
+          !Array.isArray(data.features)
+        ) {
           throw new Error(
             "Respons WFS bukan GeoJSON FeatureCollection yang valid."
           );
@@ -290,21 +295,19 @@ const ParitTanggulData = ({ enabled, zoom }) => {
 
         setFeatures(data.features);
       } catch (err) {
-        if (err.name === "AbortError") {
-          return;
+        if (err.name !== "AbortError") {
+          console.error(
+            "Error mengambil data WFS Parit/Tanggul:",
+            err
+          );
+
+          setError(
+            err.message ||
+              "Gagal mengambil data Parit dan Tanggul."
+          );
+
+          setFeatures([]);
         }
-
-        console.error(
-          "Error mengambil data WFS Parit/Tanggul:",
-          err
-        );
-
-        setError(
-          err.message ||
-            "Gagal mengambil data Parit dan Tanggul."
-        );
-
-        setFeatures([]);
       }
     };
 
@@ -315,18 +318,27 @@ const ParitTanggulData = ({ enabled, zoom }) => {
     };
   }, [enabled]);
 
+  /*
+    Jika zoom >= 13:
+    nomor parit ditampilkan.
+
+    Jika zoom < 13:
+    nomor disembunyikan.
+  */
+
   return (
     <>
       <NomorParitTanggul
         features={features}
-        visible={enabled && zoom >= MIN_ZOOM_NOMOR}
+        visible={
+          enabled &&
+          zoom >= MIN_ZOOM_NOMOR
+        }
       />
 
-      {error && (
-        <div className="absolute bottom-4 left-1/2 z-[2000] -translate-x-1/2 rounded-lg bg-red-600 px-4 py-2 text-sm text-white shadow-lg">
-          {error}
-        </div>
-      )}
+      {error ? (
+        <></>
+      ) : null}
     </>
   );
 };
@@ -336,34 +348,63 @@ const ParitTanggulData = ({ enabled, zoom }) => {
    ========================================================= */
 
 const MapPage = () => {
-  const [activeLayers, setActiveLayers] = useState({
-    layerAdm: false,
-    layerAdmDesa: false,
-    layerKab: false,
-    layerSungai: false,
-    layerTanah: false,
-    layerKelapa: false,
-    layerDem: false,
-    layerLahan: false,
-    layerParit: false,
-    layerPolaRuang: false,
-  });
+  const [activeLayers, setActiveLayers] =
+    useState({
+      layerAdm: false,
+      layerAdmDesa: false,
+      layerKab: false,
+      layerSungai: false,
+      layerTanah: false,
+      layerKelapa: false,
+      layerDem: false,
+      layerLahan: false,
+      layerParit: false,
+      layerPolaRuang: false,
+    });
 
   const [zoom, setZoom] = useState(8);
 
+  /* Toggle layer */
+
   const handleToggleLayer = (layerId) => {
-    setActiveLayers((previous) => ({
-      ...previous,
-      [layerId]: !previous[layerId],
-    }));
+    setActiveLayers((previous) => {
+      return {
+        ...previous,
+        [layerId]: !previous[layerId],
+      };
+    });
   };
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">
+
+      {/* =================================================
+          NAVBAR
+      ================================================= */}
+
       <Navbar />
 
-      {/* PANEL LAYER + LEGEND */}
-      <div className="pointer-events-none absolute bottom-8 right-8 top-24 z-[1000] flex flex-col items-end justify-between">
+      {/* =================================================
+          PANEL KANAN
+      ================================================= */}
+
+      <div
+        className="
+          pointer-events-none
+          absolute
+          bottom-8
+          right-8
+          top-24
+          z-[1000]
+          flex
+          flex-col
+          items-end
+          justify-between
+        "
+      >
+
+        {/* Layer Panel */}
+
         <div className="pointer-events-auto">
           <LayerPanel
             activeLayers={activeLayers}
@@ -371,27 +412,53 @@ const MapPage = () => {
           />
         </div>
 
+        {/* Legend Panel */}
+
         <div className="pointer-events-auto">
-          <LegendPanel activeLayers={activeLayers} />
+          <LegendPanel
+            activeLayers={activeLayers}
+            layerConfigs={LAYER_CONFIG}
+          />
         </div>
+
       </div>
 
-      {/* MAP */}
-      <div className="absolute inset-0 z-10 h-full w-full">
+      {/* =================================================
+          MAP
+      ================================================= */}
+
+      <div
+        className="
+          absolute
+          inset-0
+          z-10
+          h-full
+          w-full
+        "
+      >
+
         <MapContainer
           center={[-0.4, 103.2]}
           zoom={8}
           className="h-full w-full"
           zoomControl={false}
         >
-          {/* ESRI SATELLITE */}
+
+          {/* =================================================
+              BASEMAP ESRI SATELLITE
+          ================================================= */}
+
           <TileLayer
             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
             attribution="Tiles &copy; Esri"
           />
 
-          {/* SEMUA WMS */}
+          {/* =================================================
+              WMS GEOSERVER
+          ================================================= */}
+
           {LAYER_CONFIG.map((layer) => {
+
             if (!activeLayers[layer.id]) {
               return null;
             }
@@ -404,25 +471,46 @@ const MapPage = () => {
                 format="image/png"
                 transparent={true}
                 version="1.1.1"
+                opacity={1}
               />
             );
           })}
 
-          {/* TRACKER ZOOM */}
-          <ZoomTracker setZoom={setZoom} />
+          {/* =================================================
+              TRACKING ZOOM
+          ================================================= */}
 
-          {/* DATA WFS PARIT */}
+          <ZoomTracker
+            setZoom={setZoom}
+          />
+
+          {/* =================================================
+              NOMOR PARIT / TANGGUL
+          ================================================= */}
+
           <ParitTanggulData
-            enabled={activeLayers.layerParit}
+            enabled={
+              activeLayers.layerParit
+            }
             zoom={zoom}
           />
 
+          {/* =================================================
+              ZOOM CONTROL
+          ================================================= */}
+
           <ZoomControl position="bottomleft" />
+
         </MapContainer>
+
       </div>
 
-      {/* STYLE NOMOR PARIT */}
+      {/* =================================================
+          CSS NOMOR PARIT
+      ================================================= */}
+
       <style>{`
+
         .nomor-parit-wrapper {
           background: transparent;
           border: none;
@@ -431,42 +519,55 @@ const MapPage = () => {
         .nomor-parit {
           width: 26px;
           height: 26px;
+
           display: flex;
           align-items: center;
           justify-content: center;
 
           background: #ffffff;
+
           border: 2px solid #0077b6;
+
           border-radius: 50%;
 
           color: #0077b6;
+
           font-size: 11px;
+
           font-weight: bold;
 
-          box-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
+          box-shadow:
+            0 1px 5px
+            rgba(0, 0, 0, 0.5);
 
           cursor: pointer;
 
           transition:
-            transform 0.15s ease,
-            background 0.15s ease,
-            color 0.15s ease;
+            transform 0.15s ease;
         }
 
         .nomor-parit:hover {
           background: #0077b6;
+
           color: #ffffff;
+
           transform: scale(1.2);
         }
 
         .popup-nama-parit {
-          min-width: 150px;
-          padding: 5px 8px;
+          min-width: 120px;
+
+          padding: 6px 10px;
+
           text-align: center;
-          font-size: 13px;
+
+          font-size: 14px;
+
           color: #263238;
         }
+
       `}</style>
+
     </div>
   );
 };

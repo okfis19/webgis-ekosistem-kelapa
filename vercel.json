@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://efforts-info-structure-federation.trycloudflare.com/geoserver/:match"
+      "destination": "https://life-earliest-coast-bluetooth.trycloudflare.com/geoserver/:match"
     }, {
       "source": "/(.*)",
       "destination": "/"

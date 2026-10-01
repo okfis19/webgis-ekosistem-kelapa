@@ -42,7 +42,7 @@ export const LAYER_CONFIG = [
   {
     id: "layerKab",
     name: "Kabupaten Indragiri Hilir",
-    wsName: "risetdids:Kab.Indragiri_Hilir-2",
+    wsName: "risetids:Kab.Indragiri_Hilir-2",
   },
   {
     id: "layerSungai",

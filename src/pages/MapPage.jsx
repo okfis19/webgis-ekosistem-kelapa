@@ -47,7 +47,7 @@ export const LAYER_CONFIG = [
   {
     id: "layerSungai",
     name: "Sungai Indragiri Hilir",
-    wsName: "risetids:Sungai_Indragiri_Hilir",
+    wsName: "risetids:Sungai-irigasi-gabungan",
   },
   {
     id: "layerTanah",

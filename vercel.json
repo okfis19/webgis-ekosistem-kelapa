@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://ecology-explore-preparation-conventional.trycloudflare.com/geoserver/:match"
+      "destination": "https://tue-latest-dialogue-wooden.trycloudflare.com/geoserver/:match"
     }, {
       "source": "/(.*)",
       "destination": "/"

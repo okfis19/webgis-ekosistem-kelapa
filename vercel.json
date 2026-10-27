@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/geoserver/:match*",
-      "destination": "https://terminology-duke-thomson-permalink.trycloudflare.com/geoserver/:match"
+      "destination": "https://monetary-commodities-wonderful-packed.trycloudflare.com/geoserver/:match"
     }, {
       "source": "/(.*)",
       "destination": "/"
